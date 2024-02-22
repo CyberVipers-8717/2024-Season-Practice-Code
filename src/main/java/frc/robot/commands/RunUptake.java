@@ -1,5 +1,6 @@
 package frc.robot.commands;
 
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.UptakeSubsystem;
 
@@ -7,6 +8,7 @@ public class RunUptake extends Command {
     @SuppressWarnings({"PMD.UnusedPrivateField", "PMD.SingularField"})
     private final UptakeSubsystem m_uptake; 
     private final double speed; 
+    private final Timer uptakeTimer = new Timer(); 
 
     public RunUptake(UptakeSubsystem uptakeSubsystem) {//defaults to full speed
         m_uptake = uptakeSubsystem;
@@ -32,12 +34,18 @@ public class RunUptake extends Command {
 
     @Override 
     public void end(boolean interrupted) {
+        uptakeTimer.reset(); 
     }
 
     @Override 
-    public boolean isFinished() { //checks if voltage spikes and ends command
-       if (m_uptake.getMotorVoltage() > 15) {
-        return true; 
+    public boolean isFinished() { //checks if voltage spikes and ends command only after a couple second delay
+       if (m_uptake.getMotorVoltage() > 15 && uptakeTimer.get() == 0) { //temp voltage 
+        uptakeTimer.start();
+        return false;
+       } else if (m_uptake.getMotorVoltage() > 15 && uptakeTimer.get() < 3) {
+        return false;
+       } else if (m_uptake.getMotorVoltage() > 15 && uptakeTimer.get() > 3) {
+        return true;
        } else {
         return false; 
        }

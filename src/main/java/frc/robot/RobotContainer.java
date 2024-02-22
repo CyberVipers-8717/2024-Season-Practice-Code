@@ -42,7 +42,6 @@ public class RobotContainer {
   //holds subsystems, devices, and commands which idk what any of that means
   public RobotContainer(){
       configureButtonBindings();
-
       //default command thingy??? assuming it means this thing runs when nothing else runs
 
       //create a drive command now
@@ -71,15 +70,16 @@ public class RobotContainer {
   }
 
   private void configureButtonBindings() {
-    Trigger aButton = new JoystickButton(m_driverController, 3); //temp button Number
-    aButton.whileTrue(new RunIntake(m_intake, 1)); // runs the runIntake command repeadtedly and finishes 
-    Trigger bButton = new JoystickButton(m_driverController, 4);
-    bButton.whileTrue(Commands.parallel(new RunIntake(m_intake), new RunUptake(m_uptake, .1))); 
+    Trigger manipulatorAButton = new JoystickButton(m_manipulatorController, ManipulatorConstants.kManipulatorAButton); //temp button Number
+    manipulatorAButton.whileTrue(new RunIntake(m_intake)); // runs the runIntake command repeadtedly while the condition is true 
+    Trigger driverBButton = new JoystickButton(m_driverController, OperatorConstants.kDriverBButton);
+    driverBButton.whileTrue(Commands.parallel(new RunIntake(m_intake), new RunUptake(m_uptake, .1))); //runs the intake and uptake at the same time 
 
     /** template for any bums (aka aaron gonzales)
         new Trigger(m_exampleSubsystem::exampleCondition)
         .onTrue(new ExampleCommand(m_exampleSubsystem));
     */
+
 	}
 
 

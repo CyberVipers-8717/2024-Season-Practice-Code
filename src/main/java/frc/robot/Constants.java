@@ -55,12 +55,30 @@ public final class Constants {
     public static final int kLeftXAxisPort = 0;
     public static final int kLeftYAxisPort = 1;
     public static final int kRightXAxisPort = 2;
+
+    public static final int kDriverXButton = 1; //constants for gamepad 
+    public static final int kDriverAButton = 2; 
+    public static final int kDriverBButton = 3; 
+    public static final int kDriverYButton = 4; 
+    public static final int kDriverLeftShoulder = 5;
+    public static final int kDriverRightShoulder = 6; 
+    public static final int kDriverLeftTrigger = 7; 
+    public static final int kDriverRightTrigger = 8;   
+    //maybe add flight joystick constants
   }
 
   public static class ManipulatorConstants {
     public static final int kManipulatorControllerPort = 1;
-    
+    public static final int kManipulatorXButton = 1; 
+    public static final int kManipulatorAButton = 2; 
+    public static final int kManipulatorBButton = 3; 
+    public static final int kManiputatorYButton = 4; 
+    public static final int kManipulatorLeftShoulder = 5;
+    public static final int kManipulatorRightShoulder = 6; 
+    public static final int kManipulatorLeftTrigger = 7; 
+    public static final int kManipulatorRightTrigger = 8;   
   }
+
 
   public static class SwerveModuleConstants {
     public static final double kWheelDiameterMeters = 0.0762; 
@@ -97,7 +115,6 @@ public final class Constants {
 
     public static final int kDriveCurrentLimit = 50;
     public static final int kTurnCurrentLimit = 20;
-    
 
   }
 
@@ -117,7 +134,5 @@ public final class Constants {
     public static final int kLowShooterMotorPort = 15; 
     public static final int kHighShooterMotorPort = 16;
     public static final int kShooterMotorCurrentLimit = 50; 
-    
-
   }
 }

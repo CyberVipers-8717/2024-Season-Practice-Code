@@ -34,8 +34,8 @@ public class RunIntake extends Command {
     public void end(boolean interrupted) {}
 
     @Override 
-    public boolean isFinished() { //runs once and finishes
-        return true;
+    public boolean isFinished() { //false: runs continuously, true: runs once and stops
+        return false;
     }
     
 }
