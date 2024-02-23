@@ -6,6 +6,7 @@ package frc.robot;
 
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
+import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.TimedRobot;
 
@@ -134,5 +135,10 @@ public final class Constants {
     public static final int kLowShooterMotorPort = 15; 
     public static final int kHighShooterMotorPort = 16;
     public static final int kShooterMotorCurrentLimit = 50; 
+  }
+  
+  public static class ClimbConstants {
+    public static final int kClimbMotorPort = 17; 
+    public static final int kClimbMotorCurrentLimit = 50; 
   }
 }

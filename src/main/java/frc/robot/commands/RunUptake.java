@@ -5,7 +5,6 @@ import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.UptakeSubsystem;
 
 public class RunUptake extends Command {
-    @SuppressWarnings({"PMD.UnusedPrivateField", "PMD.SingularField"})
     private final UptakeSubsystem m_uptake; 
     private final double speed; 
     private final Timer uptakeTimer = new Timer(); 

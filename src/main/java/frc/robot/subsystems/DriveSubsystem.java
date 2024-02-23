@@ -12,15 +12,48 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
+import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.wpilibj.ADXRS450_Gyro;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
+import edu.wpi.first.wpilibj.DriverStation; 
+
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
+import com.pathplanner.lib.util.PIDConstants;
+import com.pathplanner.lib.util.ReplanningConfig;
 import com.revrobotics.SparkPIDController;
 
 public class DriveSubsystem extends SubsystemBase {
 
   
   /** Creates a new ExampleSubsystem. */
-  public DriveSubsystem() {}
+  public DriveSubsystem() {
+    
+    AutoBuilder.configureHolonomic(
+      this::getPose,
+      this::resetPose,
+      this::getCurrentSpeeds,
+      this::autoDrive,
+      new HolonomicPathFollowerConfig(
+
+        new PIDConstants(5.0, 0.0, 0.0),
+        new PIDConstants(5.0, 0.0, 0.0),
+        4.8, 
+        0.0, //pls change ("Drive base radius in meters. Distance from robot center to furthest module.")
+        new ReplanningConfig()
+      ),
+      () -> {
+        if (DriverStation.isDSAttached() == true) {
+          var alliance = DriverStation.getAlliance(); 
+          if(alliance.get() == DriverStation.Alliance.Red) {
+            return true; 
+          }
+        }
+        return false;  
+      },
+      this
+    );
+  }
 
   //creating objects for eachs werve module bc idk what im doing
   //needs a @param for angular offset. I placed -1 as placeholders, but pls replace w whatever when it is figured out
@@ -29,10 +62,14 @@ public class DriveSubsystem extends SubsystemBase {
   private final SwerveModule m_frontRight = new SwerveModule(DriveConstants.kFrontRightDriveMotorPort, DriveConstants.kFrontRightTurnMotorPort, 0);
   private final SwerveModule m_rearLeft = new SwerveModule(DriveConstants.kRearLeftDriveMotorPort, DriveConstants.kRearLeftTurnMotorPort, Math.PI);
   private final SwerveModule m_rearRight = new SwerveModule(DriveConstants.kRearRightDriveMotorPort, DriveConstants.kRearRightTurnMotorPort, Math.PI/2);
-  
+
+  private final SwerveModulePosition[] m_swervePositions = {m_frontLeft.getPosition(),m_frontRight.getPosition(),m_rearLeft.getPosition(),m_rearRight.getPosition()};
   //gyro sensor (what is it used for, idk yet)
   //maybe its used for the orientation of the robot??
   private final ADXRS450_Gyro m_gyro = new ADXRS450_Gyro();
+
+  private final SwerveDriveOdometry m_driveOdometry = new SwerveDriveOdometry(DriveConstants.kDriveKinematics, m_gyro.getRotation2d().unaryMinus(), m_swervePositions);
+
 
   //getting drive command going
   //@param rot = angular rate of robot
@@ -52,6 +89,20 @@ public class DriveSubsystem extends SubsystemBase {
     m_rearRight.setDesiredState(swerveModuleStates[3]);
   }
 
+  //drive method for path palanner 
+  public void autoDrive(ChassisSpeeds speeds) {
+    var swerveModuleStates = DriveConstants.kDriveKinematics.toSwerveModuleStates(discretize( //this method is supposed to come from ChassisSpeeds, but is a bozo n does not exist for some reason
+      speeds, DriveConstants.kDriverPeriod
+    ));
+    
+    SwerveDriveKinematics.desaturateWheelSpeeds(swerveModuleStates, DriveConstants.kMaxSpeedMetersPerSecond);
+
+    m_frontLeft.setDesiredState(swerveModuleStates[0]);
+    m_frontRight.setDesiredState(swerveModuleStates[1]);
+    m_rearLeft.setDesiredState(swerveModuleStates[2]);
+    m_rearRight.setDesiredState(swerveModuleStates[3]);
+  }
+
   //thanks to pookie bear dookie bear aaron for creatin gthis method
   //tyler needs to learn understand this later 
   public ChassisSpeeds discretize(ChassisSpeeds continuousSpeeds, double dtSeconds) {
@@ -59,6 +110,10 @@ public class DriveSubsystem extends SubsystemBase {
       continuousSpeeds.vxMetersPerSecond*dtSeconds, continuousSpeeds.vyMetersPerSecond*dtSeconds, new Rotation2d(continuousSpeeds.omegaRadiansPerSecond*dtSeconds));
     Twist2d twist = new Pose2d().log(desiredDeltaPose); 
     return new ChassisSpeeds(twist.dx/dtSeconds, twist.dy/dtSeconds, twist.dtheta/dtSeconds);
+  }
+
+  public ChassisSpeeds getCurrentSpeeds() {
+      return DriveConstants.kDriveKinematics.toChassisSpeeds(m_frontLeft.getState(), m_frontRight.getState(), m_rearLeft.getState(), m_rearRight.getState());
   }
 
   public ChassisSpeeds tofieldRelative(double xSpeed, double ySpeed, double angVel) {
@@ -122,6 +177,15 @@ public class DriveSubsystem extends SubsystemBase {
     return new double[] {0,0};
   }
 
+  public Pose2d getPose(){
+    return m_driveOdometry.update(m_gyro.getRotation2d().unaryMinus(), new SwerveModulePosition[] {m_frontLeft.getPosition(), m_frontRight.getPosition(), m_rearLeft.getPosition(), m_rearRight.getPosition()});
+  }
+  
+  public void resetPose(Pose2d pose){
+    m_driveOdometry.resetPosition(m_gyro.getRotation2d().unaryMinus(), new SwerveModulePosition[] {m_frontLeft.getPosition(), m_frontRight.getPosition(), m_rearLeft.getPosition(), m_rearRight.getPosition()}, pose);
+  }
+  
+
   // public SparkPIDController[] getPIDControllers () {
   //   return new SparkPIDController[] {m_frontLeft.getdrivePID(), m_frontLeft.getturnPID(), m_frontRight.getdrivePID(), m_frontRight.getturnPID(), m_rearLeft.getdrivePID(), m_rearLeft.getturnPID(), m_rearRight.getdrivePID(), m_rearRight.getturnPID()};
   // }
@@ -166,4 +230,6 @@ public class DriveSubsystem extends SubsystemBase {
   public void simulationPeriodic() {
     // This method will be called once per scheduler run during simulation
   }
+
+
 }

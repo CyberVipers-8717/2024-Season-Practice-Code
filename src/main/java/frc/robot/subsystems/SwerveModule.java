@@ -25,7 +25,7 @@ public class SwerveModule {
   private final AbsoluteEncoder m_turnEncoder; 
 
   private final SparkPIDController m_drivePID; 
-  private final SparkPIDController m_turnPID; 
+  private final SparkPIDController m_turnPID;  
 
   private double m_chassisAngularOffset = 0; // default chassis offset //angle the swerve is installed 
   private SwerveModuleState m_desiredState = new SwerveModuleState(0.0, new Rotation2d());  
