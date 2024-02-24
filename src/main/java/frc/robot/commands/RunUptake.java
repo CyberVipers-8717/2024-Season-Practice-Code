@@ -38,15 +38,15 @@ public class RunUptake extends Command {
 
     @Override 
     public boolean isFinished() { //checks if voltage spikes and ends command only after a couple second delay
-       if (m_uptake.getMotorVoltage() > 15 && uptakeTimer.get() == 0) { //temp voltage 
-        uptakeTimer.start();
-        return false;
-       } else if (m_uptake.getMotorVoltage() > 15 && uptakeTimer.get() < 3) {
-        return false;
-       } else if (m_uptake.getMotorVoltage() > 15 && uptakeTimer.get() > 3) {
-        return true;
+        if(speed == -1) {
+            return false; 
+        } else if (m_uptake.getMotorVoltage() > 15 && uptakeTimer.get() == 0) { //temp voltage 
+            uptakeTimer.start();
+            return false;
+       } else if (m_uptake.getMotorVoltage() > 15 && uptakeTimer.get() >= 3) {
+            return true;
        } else {
-        return false; 
+            return false; 
        }
     }
     

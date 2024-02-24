@@ -39,4 +39,9 @@ public class ShooterSubsystem extends SubsystemBase {
         m_highEncoder.setPosition(0);
     }
 
+    public void setMotors(double speed) {
+        m_lowShooter.set(speed);
+        m_highShooter.set(speed);
+    }
+
 }

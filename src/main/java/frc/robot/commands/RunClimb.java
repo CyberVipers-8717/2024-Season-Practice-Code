@@ -4,17 +4,26 @@ import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.ClimbSubsystem;
 
 public class RunClimb extends Command {
-    private final ClimbSubsystem m_climb; 
-    private ClimbHeight height; 
+    private final ClimbSubsystem m_climb;  
     private double speed; 
     private double encoderPosition; 
+    private ClimbHeight height; 
     
     //fixed commands for low, medium, and high climb
     public enum ClimbHeight {
-        LOW, MID, HIGH; 
+        LOW, MID, HIGH, MAX, NULL; 
     }
 
+    public RunClimb(ClimbSubsystem climbSubsystem, double speed) { // constructor to use for direct controller of climb
+        this.height = ClimbHeight.NULL; 
+        m_climb = climbSubsystem;
+        this.speed = speed;
+        addRequirements(m_climb);
+    }
+
+    
     public RunClimb(ClimbSubsystem climbSubsystem, ClimbHeight height) { 
+        this.height = height; 
         switch(height) {
             case LOW:
                 encoderPosition = 68;
@@ -22,6 +31,10 @@ public class RunClimb extends Command {
                 encoderPosition = 69;
             case HIGH:
                 encoderPosition = 70;
+            case MAX: 
+                encoderPosition = 71; 
+            case NULL: 
+                encoderPosition = 0; 
         }
         m_climb = climbSubsystem; 
         speed = 1; 
@@ -29,6 +42,7 @@ public class RunClimb extends Command {
     }
 
     public RunClimb(ClimbSubsystem climbSubsystem, ClimbHeight height, double speed) { 
+        this.height = height; 
         switch(height) {
             case LOW:
                 encoderPosition = 68;
@@ -36,6 +50,10 @@ public class RunClimb extends Command {
                 encoderPosition = 69;
             case HIGH:
                 encoderPosition = 70;
+            case MAX: 
+                encoderPosition = 71; 
+            case NULL: 
+                encoderPosition = 0; 
         }
         m_climb = climbSubsystem; 
         this.speed = speed; 
@@ -56,10 +74,13 @@ public class RunClimb extends Command {
 
     @Override 
     public boolean isFinished() { //false: runs continuously, true: runs once and stops
-        if(m_climb.getPosition() >= encoderPosition) {
+        if(height == ClimbHeight.NULL) { //checks to see if using direct input 
+            return false; 
+        } else if (m_climb.getPosition() >= encoderPosition) {
             return true; 
-        }  
-        return false; 
+        } else {
+            return false; 
+        }
     }
     
 }

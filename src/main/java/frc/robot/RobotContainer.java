@@ -9,13 +9,28 @@ import frc.robot.Constants.ManipulatorConstants;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.commands.Autos;
 import frc.robot.commands.ExampleCommand;
+import frc.robot.commands.RunClimb;
 import frc.robot.commands.RunIntake;
+import frc.robot.commands.RunShooter;
 import frc.robot.commands.RunUptake;
+import frc.robot.commands.RunClimb.ClimbHeight;
+import frc.robot.subsystems.ClimbSubsystem;
 import frc.robot.subsystems.DriveSubsystem;
 import frc.robot.subsystems.ExampleSubsystem;
 import frc.robot.subsystems.IntakeSubsystem;
+import frc.robot.subsystems.ShooterSubsystem;
 import frc.robot.subsystems.UptakeSubsystem;
+
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.auto.NamedCommands;
+import com.pathplanner.lib.commands.PathPlannerAuto;
+import com.pathplanner.lib.path.PathConstraints;
+import com.pathplanner.lib.path.PathPlannerPath;
+
 import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.RobotState;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.RunCommand;
@@ -30,20 +45,38 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
  */
 public class RobotContainer {
 
-  //idk what this is for yet teehee uwu ;3
+  //idk what this is for yet teehee 
   private final DriveSubsystem m_robotDrive = new DriveSubsystem();
   private final IntakeSubsystem m_intake = new IntakeSubsystem(); 
   private final UptakeSubsystem m_uptake = new UptakeSubsystem();
-  
+  private final ShooterSubsystem m_shooter = new ShooterSubsystem();
+  private final ClimbSubsystem m_climb = new ClimbSubsystem();
+
   //controller thingy majiggy
   Joystick m_driverController = new Joystick(OperatorConstants.kDriverControllerPort);
   Joystick m_manipulatorController = new Joystick(ManipulatorConstants.kManipulatorControllerPort);
 
-  //holds subsystems, devices, and commands which idk what any of that means
+  //initialize subsystem thingys for pathplanner
+
+  //named commands thingy
+  private final SendableChooser<Command> autoChooser;
+
   public RobotContainer(){
       configureButtonBindings();
-      //default command thingy??? assuming it means this thing runs when nothing else runs
 
+      autoChooser = AutoBuilder.buildAutoChooser(); //can change contructor for default auto 
+
+      //named commands to make sure pathplanner auto thingy works
+    
+      NamedCommands.registerCommand("shooter", new RunShooter(m_shooter));
+      NamedCommands.registerCommand("intake", new RunIntake(m_intake));
+      NamedCommands.registerCommand("uptake", new RunUptake(m_uptake));
+      NamedCommands.registerCommand("climbLow", new RunClimb(m_climb, ClimbHeight.LOW));
+      NamedCommands.registerCommand("climbMid", new RunClimb(m_climb, ClimbHeight.MID));
+      NamedCommands.registerCommand("climbHigh", new RunClimb(m_climb, ClimbHeight.HIGH));
+      
+
+      //default command thingy??? assuming it means this thing runs when nothing else runs
       //create a drive command now
       //tyler note: learn lambda or else ill do smth
       m_robotDrive.setDefaultCommand(
@@ -57,7 +90,14 @@ public class RobotContainer {
         )
       );
 
-      
+    if(RobotState.isTest()) { //checks if robot is in test mode to display subsystems on shuffleBoard
+      SmartDashboard.putData(m_robotDrive);
+      SmartDashboard.putData(m_intake);
+      SmartDashboard.putData(m_uptake);
+      SmartDashboard.putData(m_shooter);
+      SmartDashboard.putData(m_climb);
+    }
+    SmartDashboard.putData("Auto Chooser", autoChooser); 
   }
 
   //move this somewhere else 
@@ -70,11 +110,33 @@ public class RobotContainer {
   }
 
   private void configureButtonBindings() {
-    Trigger manipulatorAButton = new JoystickButton(m_manipulatorController, ManipulatorConstants.kManipulatorAButton); //temp button Number
-    manipulatorAButton.whileTrue(new RunIntake(m_intake)); // runs the runIntake command repeadtedly while the condition is true 
-    Trigger driverBButton = new JoystickButton(m_driverController, OperatorConstants.kDriverBButton);
-    driverBButton.whileTrue(Commands.parallel(new RunIntake(m_intake), new RunUptake(m_uptake, .1))); //runs the intake and uptake at the same time 
+    //driver controls
+    Trigger driverLeftTrigger = new JoystickButton(m_driverController, OperatorConstants.kDriverLeftTrigger);
+    Trigger driverRightTrigger = new JoystickButton(m_driverController, OperatorConstants.kDriverRightTrigger);
+    
+    driverLeftTrigger.whileTrue(new RunClimb(m_climb, 1)); //moves climb up
+    driverRightTrigger.whileTrue(new RunClimb(m_climb, -1)); //moves climb down 
 
+    //manipulator controls 
+    Trigger manipulatorBButton = new JoystickButton(m_manipulatorController, ManipulatorConstants.kManipulatorBButton); 
+    Trigger manipulatorAButton = new JoystickButton(m_manipulatorController, ManipulatorConstants.kManipulatorAButton);
+    Trigger manipulatorXButton = new JoystickButton(m_manipulatorController, ManipulatorConstants.kManipulatorXButton);
+    Trigger manipulatorYButton = new JoystickButton(m_manipulatorController, ManipulatorConstants.kManiputatorYButton);
+    Trigger manipulatorLeftShoulder = new JoystickButton(m_manipulatorController, ManipulatorConstants.kManipulatorLeftShoulder);
+    Trigger manipulatorRightShoulder = new JoystickButton(m_manipulatorController, ManipulatorConstants.kManipulatorRightShoulder);
+    Trigger manipulatorLeftTrigger = new JoystickButton(m_manipulatorController, ManipulatorConstants.kManipulatorLeftTrigger);
+    Trigger manipulatorRightTrigger = new JoystickButton(m_manipulatorController, ManipulatorConstants.kManipulatorRightTrigger);
+    
+    manipulatorBButton.onTrue(new RunClimb(m_climb, ClimbHeight.LOW)); //moves the shooter to low
+    manipulatorAButton.onTrue(new RunClimb(m_climb, ClimbHeight.MID)); //moves the shooter to mid
+    manipulatorXButton.onTrue(new RunClimb(m_climb, ClimbHeight.HIGH)); // moves the shooter to high
+    manipulatorYButton.onTrue(new RunClimb(m_climb, ClimbHeight.MAX)); // moves the shooter to MAX (might remove)
+    manipulatorLeftShoulder.whileTrue(Commands.parallel(new RunIntake(m_intake, -1), new RunUptake(m_uptake, -1))); //Runs intake and uptake backwards
+    manipulatorRightShoulder.whileTrue(new RunUptake(m_uptake)); // pops a note into shooter
+    manipulatorLeftTrigger.whileTrue(new RunShooter(m_shooter)); // revs the shooter
+    manipulatorRightTrigger.whileTrue(Commands.parallel(new RunIntake(m_intake, 1), new RunUptake(m_uptake, .1))); // runs intake and shooter and stops after a note hits the uptake
+    
+    
     /** template for any bums (aka aaron gonzales)
         new Trigger(m_exampleSubsystem::exampleCondition)
         .onTrue(new ExampleCommand(m_exampleSubsystem));
@@ -82,43 +144,25 @@ public class RobotContainer {
 
 	}
 
+  //public Command getAutonomousCommand() {   
+  // / return new PathPlannerAuto("Example Auto"); how to get a path planner auto
+  //}
 
-	/**
-  yap session #2 down here
-       |
-       |
-       |
-       \/
-   */
+  // public Command getAutonomousCommand() {
+  //   PathPlannerPath path = PathPlannerPath.fromPathFile(SmartDashboard.getString("Auto Chooser", autoChooser)); //change later bc im lazy
 
-  /*
-  // The robot's subsystems and commands are defined here...
-  private final ExampleSubsystem m_exampleSubsystem = new ExampleSubsystem();
+  //   PathConstraints constraints = new PathConstraints(
+  //     DriveConstants.kMaxSpeedMetersPerSecond, DriveConstants.kMaxAccelerationMetersPerSecond, 
+  //     DriveConstants.kMaxAngularSpeed, DriveConstants.kMaxAngularAcceleration
+  //     );
 
+  //   Command pathfindingCommand = AutoBuilder.pathfindThenFollowPath(
+  //     path,
+  //     constraints,
+  //     8717.0 //figure out later
+  //   );
+    
+  //   return pathfindingCommand;
+  // }
 
-  /**
-   * Use this method to define your trigger->command mappings. Triggers can be created via the
-   * {@link Trigger#Trigger(java.util.function.BooleanSupplier)} constructor with an arbitrary
-   * predicate, or via the named factories in {@link
-   * edu.wpi.first.wpilibj2.command.button.CommandGenericHID}'s subclasses for {@link
-   * CommandXboxController Xbox}/{@link edu.wpi.first.wpilibj2.command.button.CommandPS4Controller
-   * PS4} controllers or {@link edu.wpi.first.wpilibj2.command.button.CommandJoystick Flight
-   * joysticks}.
-   */
-    // Schedule `exampleMethodCommand` when the Xbox controller's B button is pressed,
-    // cancelling on release.
-    /*
-    m_driverController.b().whileTrue(m_exampleSubsystem.exampleMethodCommand());
-  }
-
-  /**
-   * Use this to pass the autonomous command to the main {@link Robot} class.
-   *
-   * @return the command to run in autonomous
-   */
-   /*
-  public Command getAutonomousCommand() {
-    // An example command will be run in autonomous
-    return Autos.exampleAuto(m_exampleSubsystem);
-  }*/
 }

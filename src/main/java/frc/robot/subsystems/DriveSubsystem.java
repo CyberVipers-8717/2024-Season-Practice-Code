@@ -231,5 +231,7 @@ public class DriveSubsystem extends SubsystemBase {
     // This method will be called once per scheduler run during simulation
   }
 
-
+  public double getAprilTagOrientation() {
+    return 0; //discontinued until i can figure out how this stuff works - jackie
+  }
 }
