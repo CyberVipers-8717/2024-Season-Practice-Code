@@ -14,9 +14,11 @@ import frc.robot.Constants.SwerveModuleConstants;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.util.sendable.Sendable;
+import edu.wpi.first.util.sendable.SendableBuilder;
 
 //setting up all the default attributes for a swerve module, pretty much creates a swerve module object for us to work with
-public class SwerveModule {
+public class SwerveModule implements Sendable {
 // all these reassign labels for the module
   private final CANSparkMax m_driveMotor; 
   private final CANSparkMax m_turnMotor; 
@@ -24,8 +26,8 @@ public class SwerveModule {
   private final RelativeEncoder m_driveEncoder;
   private final AbsoluteEncoder m_turnEncoder; 
 
-  private final SparkPIDController m_drivePID; 
-  private final SparkPIDController m_turnPID;  
+  public final SparkPIDController m_drivePID; //change back to private
+  public final SparkPIDController m_turnPID;  
 
   private double m_chassisAngularOffset = 0; // default chassis offset //angle the swerve is installed 
   private SwerveModuleState m_desiredState = new SwerveModuleState(0.0, new Rotation2d());  
@@ -80,7 +82,7 @@ public class SwerveModule {
 
 // controls whether the robot is doing anything or not
     m_driveMotor.setIdleMode(com.revrobotics.CANSparkBase.IdleMode.kBrake);
-    m_turnMotor.setIdleMode(IdleMode.kBrake);
+    m_turnMotor.setIdleMode(IdleMode.kCoast);
 
 // sets the amp limits for the drive motor and the turn motor
     m_driveMotor.setSmartCurrentLimit(SwerveModuleConstants.kDriveCurrentLimit);
@@ -138,6 +140,15 @@ public class SwerveModule {
     m_turnPID.setReference(optimizedDesiredState.angle.getRadians(), CANSparkMax.ControlType.kPosition); 
 
     m_desiredState = desiredState; 
+  }
+
+  @Override
+  public void initSendable(SendableBuilder builder) {
+    builder.setSmartDashboardType("PIDController");
+    builder.addDoubleProperty("driveP", m_drivePID::getP, m_drivePID::setP);
+    builder.addDoubleProperty("driveI", m_drivePID::getI, m_drivePID::setI);
+    builder.addDoubleProperty("driveD", m_drivePID::getD, m_drivePID::setD);
+    builder.addDoubleProperty("driveIZone", m_drivePID::getIZone, m_drivePID::setIZone);
   }
 
 }

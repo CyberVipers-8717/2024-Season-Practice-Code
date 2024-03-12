@@ -44,13 +44,14 @@ public final class Constants {
     public static final SwerveDriveKinematics kDriveKinematics =
     new SwerveDriveKinematics(
       new Translation2d(kTrackLength / 2, kTrackWidth / 2), //front left
-      new Translation2d(-kTrackLength / 2, kTrackWidth / 2), //front right      
-      new Translation2d(kTrackLength / 2, -kTrackWidth / 2), //rear left
+      new Translation2d(kTrackLength / 2, -kTrackWidth / 2), //front right      
+      new Translation2d(-kTrackLength / 2, kTrackWidth / 2), //rear left
       new Translation2d(-kTrackLength / 2, -kTrackWidth / 2)); //rear right
 
     //constant thingy to grab time period of teleop???? idk ask mark
     public static final double kDriverPeriod = TimedRobot.kDefaultPeriod;
   }
+
   public static class OperatorConstants {
     public static final int kDriverControllerPort = 0;
 
@@ -79,7 +80,7 @@ public final class Constants {
     public static final int kManipulatorLeftShoulder = 5;
     public static final int kManipulatorRightShoulder = 6; 
     public static final int kManipulatorLeftTrigger = 7; 
-    public static final int kManipulatorRightTrigger = 8;   
+    public static final int kManipulatorRightTrigger = 8;  
   }
 
 
@@ -122,25 +123,25 @@ public final class Constants {
   }
 
   public static class IntakeConstants {
-    public static final int kLowIntakeMotorPort = 12; 
-    public static final int kHighIntakeMotorPort = 13; 
-    public static final int kIntakeCurrentLimit = 20; 
-    public static final boolean kHighIntakeInverted = true; 
+    public static final int kLowIntakeMotorPort = 16; 
+    public static final int kHighIntakeMotorPort = 6; 
+    public static final int kIntakeCurrentLimit = 50; 
+    public static final boolean kHighIntakeInverted = false; 
   }
 
   public static class UptakeConstants {
-    public static final int kUptakeMotorPort = 14;
+    public static final int kUptakeMotorPort = 9;
     public static final int kUptakeCurrentLimit = 50; 
   }
 
   public static class ShooterConstants {
-    public static final int kLowShooterMotorPort = 15; 
-    public static final int kHighShooterMotorPort = 16;
+    public static final int kLowShooterMotorPort = 10; 
+    public static final int kHighShooterMotorPort = 13;
     public static final int kShooterMotorCurrentLimit = 50; 
   }
   
   public static class ClimbConstants {
-    public static final int kClimbMotorPort = 17; 
+    public static final int kClimbMotorPort = 2; 
     public static final int kClimbMotorCurrentLimit = 50; 
   }
 }

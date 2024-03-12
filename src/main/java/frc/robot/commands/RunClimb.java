@@ -70,7 +70,9 @@ public class RunClimb extends Command {
     }
 
     @Override 
-    public void end(boolean interrupted) {}
+    public void end(boolean interrupted) {
+        m_climb.setMotor(0);
+    }
 
     @Override 
     public boolean isFinished() { //false: runs continuously, true: runs once and stops

@@ -25,7 +25,7 @@ public class IntakeSubsystem extends SubsystemBase {
         m_highEncoder = m_highIntake.getEncoder(); 
 
         //have to test
-        m_highIntake.setInverted(IntakeConstants.kHighIntakeInverted);
+        m_highIntake.setInverted(false);
 
         m_lowIntake.setIdleMode(IdleMode.kBrake);
         m_highIntake.setIdleMode(IdleMode.kBrake);

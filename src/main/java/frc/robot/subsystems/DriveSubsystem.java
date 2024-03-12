@@ -7,6 +7,7 @@ package frc.robot.subsystems;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.DriveConstants;
+import frc.robot.Constants.SwerveModuleConstants;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Twist2d;
@@ -15,7 +16,11 @@ import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.wpilibj.ADXRS450_Gyro;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
-import edu.wpi.first.wpilibj.DriverStation; 
+import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.networktables.StructArrayPublisher;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
@@ -39,7 +44,7 @@ public class DriveSubsystem extends SubsystemBase {
         new PIDConstants(5.0, 0.0, 0.0),
         new PIDConstants(5.0, 0.0, 0.0),
         4.8, 
-        0.0, //pls change ("Drive base radius in meters. Distance from robot center to furthest module.")
+        0.41, //maybe change ("Drive base radius in meters. Distance from robot center to furthest module.")
         new ReplanningConfig()
       ),
       () -> {
@@ -49,7 +54,8 @@ public class DriveSubsystem extends SubsystemBase {
             return true; 
           }
         }
-        return false;  
+        //return false;  
+        return true; 
       },
       this
     );
@@ -58,10 +64,10 @@ public class DriveSubsystem extends SubsystemBase {
   //creating objects for eachs werve module bc idk what im doing
   //needs a @param for angular offset. I placed -1 as placeholders, but pls replace w whatever when it is figured out
 
-  private final SwerveModule m_frontLeft = new SwerveModule(DriveConstants.kFrontLeftDriveMotorPort, DriveConstants.kFrontLeftTurnMotorPort, Math.PI/2+Math.PI);
-  private final SwerveModule m_frontRight = new SwerveModule(DriveConstants.kFrontRightDriveMotorPort, DriveConstants.kFrontRightTurnMotorPort, 0);
-  private final SwerveModule m_rearLeft = new SwerveModule(DriveConstants.kRearLeftDriveMotorPort, DriveConstants.kRearLeftTurnMotorPort, Math.PI);
-  private final SwerveModule m_rearRight = new SwerveModule(DriveConstants.kRearRightDriveMotorPort, DriveConstants.kRearRightTurnMotorPort, Math.PI/2);
+  public final SwerveModule m_frontLeft = new SwerveModule(DriveConstants.kFrontLeftDriveMotorPort, DriveConstants.kFrontLeftTurnMotorPort, Math.PI/2); //change back to private 
+  public final SwerveModule m_frontRight = new SwerveModule(DriveConstants.kFrontRightDriveMotorPort, DriveConstants.kFrontRightTurnMotorPort, Math.PI);
+  public final SwerveModule m_rearLeft = new SwerveModule(DriveConstants.kRearLeftDriveMotorPort, DriveConstants.kRearLeftTurnMotorPort, 0);
+  public final SwerveModule m_rearRight = new SwerveModule(DriveConstants.kRearRightDriveMotorPort, DriveConstants.kRearRightTurnMotorPort, -Math.PI/2);
 
   private final SwerveModulePosition[] m_swervePositions = {m_frontLeft.getPosition(),m_frontRight.getPosition(),m_rearLeft.getPosition(),m_rearRight.getPosition()};
   //gyro sensor (what is it used for, idk yet)
@@ -70,6 +76,7 @@ public class DriveSubsystem extends SubsystemBase {
 
   private final SwerveDriveOdometry m_driveOdometry = new SwerveDriveOdometry(DriveConstants.kDriveKinematics, m_gyro.getRotation2d().unaryMinus(), m_swervePositions);
 
+  private final StructArrayPublisher<SwerveModuleState> publisher = NetworkTableInstance.getDefault().getStructArrayTopic("MyStates", SwerveModuleState.struct).publish();
 
   //getting drive command going
   //@param rot = angular rate of robot
@@ -91,7 +98,7 @@ public class DriveSubsystem extends SubsystemBase {
 
   //drive method for path palanner 
   public void autoDrive(ChassisSpeeds speeds) {
-    var swerveModuleStates = DriveConstants.kDriveKinematics.toSwerveModuleStates(discretize( //this method is supposed to come from ChassisSpeeds, but is a bozo n does not exist for some reason
+    var swerveModuleStates = DriveConstants.kDriveKinematics.toSwerveModuleStates(discretize(
       speeds, DriveConstants.kDriverPeriod
     ));
     
@@ -117,7 +124,8 @@ public class DriveSubsystem extends SubsystemBase {
   }
 
   public ChassisSpeeds tofieldRelative(double xSpeed, double ySpeed, double angVel) {
-    double hypot = Math.hypot(xSpeed, ySpeed) * DriveConstants.kMaxSpeedMetersPerSecond; 
+    double hypot = Math.hypot(xSpeed, ySpeed);
+    //double hypot = Math.hypot(xSpeed, ySpeed) * DriveConstants.kMaxSpeedMetersPerSecond;  
     double angle = findControllerAngle(-xSpeed, ySpeed); //radians
     double robotAngle = -m_gyro.getAngle();
     while(Math.abs(robotAngle) > 0) { //finds positive relative angle 
@@ -223,7 +231,7 @@ public class DriveSubsystem extends SubsystemBase {
 
   @Override
   public void periodic() {
-    // This method will be called once per scheduler run
+    publisher.set(new SwerveModuleState[] {m_frontLeft.getState(), m_frontRight.getState(), m_rearLeft.getState(), m_rearRight.getState()}); 
   }
 
   @Override

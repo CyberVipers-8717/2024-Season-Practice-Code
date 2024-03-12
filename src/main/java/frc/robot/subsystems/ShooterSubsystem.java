@@ -30,6 +30,9 @@ public class ShooterSubsystem extends SubsystemBase {
         m_lowShooter.setSmartCurrentLimit(ShooterConstants.kShooterMotorCurrentLimit);
         m_highShooter.setSmartCurrentLimit(ShooterConstants.kShooterMotorCurrentLimit); 
 
+        m_lowShooter.setInverted(true);
+        m_highShooter.setInverted(true);
+
         m_lowShooter.burnFlash();
         m_highShooter.burnFlash(); 
     }

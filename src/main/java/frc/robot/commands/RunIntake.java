@@ -30,7 +30,9 @@ public class RunIntake extends Command {
     }
 
     @Override 
-    public void end(boolean interrupted) {}
+    public void end(boolean interrupted) {
+        m_intake.setMotors(0);
+    }
 
     @Override 
     public boolean isFinished() { //false: runs continuously, true: runs once and stops
