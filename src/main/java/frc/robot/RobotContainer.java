@@ -58,7 +58,7 @@ public class RobotContainer {
   private final IntakeSubsystem m_intake = new IntakeSubsystem();
   private final UptakeSubsystem m_uptake = new UptakeSubsystem();
   private final ShooterSubsystem m_shooter = new ShooterSubsystem();
-  // private final ClimbSubsystem m_climb = new ClimbSubsystem();
+  private final ClimbSubsystem m_climb = new ClimbSubsystem();
   // private final LimelightSubsystem m_frontLimeLight = new
   // LimelightSubsystem("front");
   // private final LimelightSubsystem m_backLimeLight = new
@@ -135,10 +135,8 @@ public class RobotContainer {
     // OperatorConstants.kDriverRightTrigger);
 
     // //manipulator controls
-    // Trigger manipulatorBButton = new JoystickButton(m_manipulatorController,
-    // ManipulatorConstants.kManipulatorBButton);
-    // Trigger manipulatorAButton = new JoystickButton(m_manipulatorController,
-    // ManipulatorConstants.kManipulatorAButton);
+    //Trigger manipulatorBButton = new JoystickButton(m_manipulatorController, ManipulatorConstants.kManipulatorBButton);
+    //Trigger manipulatorAButton = new JoystickButton(m_manipulatorController, ManipulatorConstants.kManipulatorAButton);
     // Trigger manipulatorXButton = new JoystickButton(m_manipulatorController,
     // ManipulatorConstants.kManipulatorXButton);
     // Trigger manipulatorYButton = new JoystickButton(m_manipulatorController,
@@ -164,16 +162,7 @@ public class RobotContainer {
     // shooter
     manipulatorRightTrigger.whileTrue(Commands.parallel(new RunIntake(m_intake, .5), new RunUptake(m_uptake, .25))); // runs intake and shooter and stops after
     // a note hits the uptake
-
    
-   
-    
-
-    /**
-     * template for any bums (aka aaron gonzales)
-     * new Trigger(m_exampleSubsystem::exampleCondition)
-     * .onTrue(new ExampleCommand(m_exampleSubsystem));
-     */
 
   }
 
