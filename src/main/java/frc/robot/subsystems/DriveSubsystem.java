@@ -48,6 +48,7 @@ public class DriveSubsystem extends SubsystemBase {
         new ReplanningConfig()
       ),
       () -> { 
+        //if FMS is not connected then it defaults to whatever alliance is set in the driverstation 
         var alliance = DriverStation.getAlliance(); 
           if (alliance.isPresent()) {
             return alliance.get() == DriverStation.Alliance.Red;
@@ -66,13 +67,13 @@ public class DriveSubsystem extends SubsystemBase {
   public final SwerveModule m_rearLeft = new SwerveModule(DriveConstants.kRearLeftDriveMotorPort, DriveConstants.kRearLeftTurnMotorPort, 0);
   public final SwerveModule m_rearRight = new SwerveModule(DriveConstants.kRearRightDriveMotorPort, DriveConstants.kRearRightTurnMotorPort, -Math.PI/2);
 
-  private final SwerveModulePosition[] m_swervePositions = {m_frontLeft.getPosition(),m_frontRight.getPosition(),m_rearLeft.getPosition(),m_rearRight.getPosition()};
-  //gyro sensor (what is it used for, idk yet)
-  //maybe its used for the orientation of the robot??
+  private final SwerveModulePosition[] m_swervePositions = getPositions();
+  
   private final ADXRS450_Gyro m_gyro = new ADXRS450_Gyro();
 
   private final SwerveDriveOdometry m_driveOdometry = new SwerveDriveOdometry(DriveConstants.kDriveKinematics, m_gyro.getRotation2d().unaryMinus(), m_swervePositions);
 
+  //serializes and publishes data for visualization using advantagescope 
   private final StructArrayPublisher<SwerveModuleState> publisher = NetworkTableInstance.getDefault().getStructArrayTopic("MyStates", SwerveModuleState.struct).publish();
 
   //getting drive command going
@@ -93,9 +94,9 @@ public class DriveSubsystem extends SubsystemBase {
     m_rearRight.setDesiredState(swerveModuleStates[3]);
   }
 
-  //drive method for path planner 
+  //drive method for path following 
   public void autoDrive(ChassisSpeeds speeds) {
-    System.out.println("Speeds: " + speeds.vxMetersPerSecond + " " + speeds.vyMetersPerSecond + " " + speeds.omegaRadiansPerSecond);
+    System.out.println("Speeds: " + speeds.vxMetersPerSecond + " " + speeds.vyMetersPerSecond + " " + speeds.omegaRadiansPerSecond); //testing remove later
     var swerveModuleStates = DriveConstants.kDriveKinematics.toSwerveModuleStates(discretize(
     speeds, DriveConstants.kDriverPeriod
     ));
@@ -110,6 +111,7 @@ public class DriveSubsystem extends SubsystemBase {
 
   //thanks to pookie bear dookie bear aaron for creatin gthis method
   //tyler needs to learn understand this later 
+  //should get rid of this implentation and use the one built into wpilib
   public ChassisSpeeds discretize(ChassisSpeeds continuousSpeeds, double dtSeconds) {
     Pose2d desiredDeltaPose = new Pose2d(
       continuousSpeeds.vxMetersPerSecond*dtSeconds, continuousSpeeds.vyMetersPerSecond*dtSeconds, new Rotation2d(continuousSpeeds.omegaRadiansPerSecond*dtSeconds));
@@ -117,13 +119,8 @@ public class DriveSubsystem extends SubsystemBase {
     return new ChassisSpeeds(twist.dx/dtSeconds, twist.dy/dtSeconds, twist.dtheta/dtSeconds);
   }
 
-  public ChassisSpeeds getCurrentSpeeds() {
-      return DriveConstants.kDriveKinematics.toChassisSpeeds(m_frontLeft.getState(), m_frontRight.getState(), m_rearLeft.getState(), m_rearRight.getState());
-  }
-
   public ChassisSpeeds tofieldRelative(double xSpeed, double ySpeed, double angVel) {
     double hypot = Math.hypot(xSpeed, ySpeed);
-    //double hypot = Math.hypot(xSpeed, ySpeed) * DriveConstants.kMaxSpeedMetersPerSecond;  
     double angle = findControllerAngle(-xSpeed, ySpeed); //radians
     double robotAngle = -m_gyro.getAngle();
     while(Math.abs(robotAngle) > 0) { //finds positive relative angle 
@@ -183,54 +180,33 @@ public class DriveSubsystem extends SubsystemBase {
     return new double[] {0,0};
   }
 
+  //should work (maybe)?
   public Pose2d getPose(){
-    return m_driveOdometry.update(m_gyro.getRotation2d().unaryMinus(), new SwerveModulePosition[] {m_frontLeft.getPosition(), m_frontRight.getPosition(), m_rearLeft.getPosition(), m_rearRight.getPosition()});
+    return m_driveOdometry.getPoseMeters();
   }
   
   public void resetPose(Pose2d pose){
-    m_driveOdometry.resetPosition(m_gyro.getRotation2d().unaryMinus(), new SwerveModulePosition[] {m_frontLeft.getPosition(), m_frontRight.getPosition(), m_rearLeft.getPosition(), m_rearRight.getPosition()}, pose);
+    m_driveOdometry.resetPosition(m_gyro.getRotation2d().unaryMinus(), getPositions(), pose);
+  }
+
+  public SwerveModulePosition[] getPositions() {
+    return new SwerveModulePosition[] {m_frontLeft.getPosition(), m_frontRight.getPosition(), m_rearLeft.getPosition(), m_rearRight.getPosition()};
   }
   
+  public SwerveModuleState[] getStates() {
+    return new SwerveModuleState[] {m_frontLeft.getState(), m_frontRight.getState(), m_rearLeft.getState(), m_rearRight.getState()}
+  }
 
-  // public SparkPIDController[] getPIDControllers () {
-  //   return new SparkPIDController[] {m_frontLeft.getdrivePID(), m_frontLeft.getturnPID(), m_frontRight.getdrivePID(), m_frontRight.getturnPID(), m_rearLeft.getdrivePID(), m_rearLeft.getturnPID(), m_rearRight.getdrivePID(), m_rearRight.getturnPID()};
-  // }
-
-  /**
-  
-  yap session
-
-    |
-    |
-    |
-    \/
-
-   */
-
-  /**
-   * Example command factory method.
-   *
-   * @return a command
-   */
-  /*public Command exampleMethodCommand() {
-    // Inline construction of command goes here.
-    // Subsystem::RunOnce implicitly requires `this` subsystem.
-    return runOnce(
-        () -> {
-          /* one-time action goes here */
-       // });
-  //}
-
-  /**
-   * An example method querying a boolean state of the subsystem (for example, a digital sensor).
-   *
-   * @return value of some boolean subsystem state, such as a digital sensor.
-   */
+    public ChassisSpeeds getCurrentSpeeds() {
+      return DriveConstants.kDriveKinematics.toChassisSpeeds(getStates());
+  }
 
   @Override
   public void periodic() {
-    publisher.set(new SwerveModuleState[] {m_frontLeft.getState(), m_frontRight.getState(), m_rearLeft.getState(), m_rearRight.getState()}); 
-    m_driveOdometry.update(m_gyro.getRotation2d().unaryMinus(), new SwerveModulePosition[] {m_frontLeft.getPosition(), m_frontRight.getPosition(), m_rearLeft.getPosition(), m_rearRight.getPosition()});
+    //updates data on advantagescope
+    publisher.set(getStates()); 
+    //updates the swerve odometry every clock cycle
+    m_driveOdometry.update(m_gyro.getRotation2d().unaryMinus(), getPositions());
   }
 
   @Override
@@ -238,7 +214,4 @@ public class DriveSubsystem extends SubsystemBase {
     // This method will be called once per scheduler run during simulation
   }
 
-  public double getAprilTagOrientation() {
-    return 0; //discontinued until i can figure out how this stuff works - jackie
-  }
 }
