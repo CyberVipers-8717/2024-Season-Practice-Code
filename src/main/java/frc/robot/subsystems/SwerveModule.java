@@ -5,12 +5,13 @@ import com.revrobotics.AbsoluteEncoder;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.SparkAbsoluteEncoder;
 import com.revrobotics.SparkPIDController;
+import com.revrobotics.CANSparkBase.ControlType;
 import com.revrobotics.CANSparkBase.IdleMode;
 import com.revrobotics.CANSparkLowLevel.MotorType;
 import com.revrobotics.SparkPIDController.AccelStrategy;
 
 import frc.robot.Constants.SwerveModuleConstants;
-
+import edu.wpi.first.math.MathSharedStore;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
@@ -145,12 +146,30 @@ public class SwerveModule implements Sendable {
   @Override
   public void initSendable(SendableBuilder builder) {
     builder.setSmartDashboardType("PIDController");
-    builder.addDoubleProperty("driveP", m_drivePID::getP, m_drivePID::setP);
-    builder.addDoubleProperty("driveI", m_drivePID::getI, m_drivePID::setI);
-    builder.addDoubleProperty("driveD", m_drivePID::getD, m_drivePID::setD);
-    builder.addDoubleProperty("driveIZone", m_drivePID::getIZone, m_drivePID::setIZone);
+    builder.addDoubleProperty("p", m_drivePID::getP, m_drivePID::setP);
+    builder.addDoubleProperty("i", m_drivePID::getI, m_drivePID::setI);
+    builder.addDoubleProperty("d", m_drivePID::getD, m_drivePID::setD);
+    builder.addDoubleProperty("izone", m_drivePID::getIZone, (double toSet) -> { try {m_drivePID.setIZone(toSet);} catch (IllegalArgumentException e) {
+      MathSharedStore.reportError("IZone must be a non-negative number!", e.getStackTrace());}
+    });
+    builder.addDoubleProperty("setpoint", () -> {return 1;}, (x) -> {m_drivePID.setReference(x, ControlType.kVelocity);});
   }
 
+    // builder.setSmartDashboardType("PIDController");
+    // builder.addDoubleProperty("p", this::getP, this::setP);
+    // builder.addDoubleProperty("i", this::getI, this::setI);
+    // builder.addDoubleProperty("d", this::getD, this::setD);
+    // builder.addDoubleProperty(
+    //     "izone",
+    //     this::getIZone,
+    //     (double toSet) -> {
+    //       try {
+    //         setIZone(toSet);
+    //       } catch (IllegalArgumentException e) {
+    //         MathSharedStore.reportError("IZone must be a non-negative number!", e.getStackTrace());
+    //       }
+    //     });
+    // builder.addDoubleProperty("setpoint", this::getSetpoint, this::setSetpoint);
 }
 
 

@@ -21,9 +21,9 @@ import edu.wpi.first.wpilibj.TimedRobot;
 public final class Constants {
   public static class DriveConstants { 
     public static final double kMaxSpeedMetersPerSecond = 4.8;
-    public static final double kMaxAccelerationMetersPerSecond = 4.8; //FAKE
+    public static final double kMaxAccelerationMetersPerSecond = 4.8; //theoretical 
     public static final double kMaxAngularSpeed = 2 * Math.PI; //radians per sec 
-    public static final double kMaxAngularAcceleration = 4.8; //FAKE
+    public static final double kMaxAngularAcceleration = 2 * Math.PI; 
     public static final double kTrackWidth = Units.inchesToMeters(22.5);
     //change this to actual value bc idk and im too lazy to figure it out
     public static final double kTrackLength = Units.inchesToMeters(22.5);

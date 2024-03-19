@@ -8,8 +8,9 @@ import frc.robot.Constants.DriveConstants;
 import frc.robot.Constants.ManipulatorConstants;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.Constants.SwerveModuleConstants;
-import frc.robot.commands.Autos;
-import frc.robot.commands.ExampleCommand;
+import frc.robot.commands.AutoIntake;
+import frc.robot.commands.AutoShooter;
+import frc.robot.commands.AutoUptake;
 import frc.robot.commands.RunClimb;
 import frc.robot.commands.RunIntake;
 import frc.robot.commands.RunShooter;
@@ -28,7 +29,6 @@ import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.commands.PathPlannerAuto;
 import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.path.PathPlannerPath;
-
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.RobotState;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
@@ -81,15 +81,9 @@ public class RobotContainer {
 
     // named commands to make sure pathplanner auto thingy works
 
-    // NamedCommands.registerCommand("shooter", new RunShooter(m_shooter));
-    // NamedCommands.registerCommand("intake", new RunIntake(m_intake));
-    // NamedCommands.registerCommand("uptake", new RunUptake(m_uptake));
-    // NamedCommands.registerCommand("climbLow", new RunClimb(m_climb,
-    // ClimbHeight.LOW));
-    // NamedCommands.registerCommand("climbMid", new RunClimb(m_climb,
-    // ClimbHeight.MID));
-    // NamedCommands.registerCommand("climbHigh", new RunClimb(m_climb,
-    // ClimbHeight.HIGH));
+    NamedCommands.registerCommand("shooter", new AutoShooter(m_shooter, .45));
+    NamedCommands.registerCommand("intake", new AutoIntake(m_intake, .5));
+    NamedCommands.registerCommand("uptake", new AutoUptake(m_uptake, .25));
 
     // default command thingy??? assuming it means this thing runs when nothing else
     // runs
@@ -107,9 +101,9 @@ public class RobotContainer {
     if (RobotState.isTest()) { // checks if robot is in test mode to display subsystems on shuffleBoard
       SmartDashboard.putData(m_robotDrive);
       SmartDashboard.putData(m_robotDrive.m_frontLeft);
-      SmartDashboard.putData(m_robotDrive.m_frontRight);
-      SmartDashboard.putData(m_robotDrive.m_rearLeft);
-      SmartDashboard.putData(m_robotDrive.m_rearRight);
+      // SmartDashboard.putData(m_robotDrive.m_frontRight);
+      // SmartDashboard.putData(m_robotDrive.m_rearLeft);
+      // SmartDashboard.putData(m_robotDrive.m_rearRight);
       // SmartDashboard.putData(m_intake);
       // SmartDashboard.putData(m_uptake);
       // SmartDashboard.putData(m_shooter);
@@ -135,10 +129,9 @@ public class RobotContainer {
     // OperatorConstants.kDriverRightTrigger);
 
     // //manipulator controls
-    //Trigger manipulatorBButton = new JoystickButton(m_manipulatorController, ManipulatorConstants.kManipulatorBButton);
-    //Trigger manipulatorAButton = new JoystickButton(m_manipulatorController, ManipulatorConstants.kManipulatorAButton);
-    // Trigger manipulatorXButton = new JoystickButton(m_manipulatorController,
-    // ManipulatorConstants.kManipulatorXButton);
+    Trigger manipulatorBButton = new JoystickButton(m_manipulatorController, ManipulatorConstants.kManipulatorBButton);
+    Trigger manipulatorAButton = new JoystickButton(m_manipulatorController, ManipulatorConstants.kManipulatorAButton);
+    Trigger manipulatorXButton = new JoystickButton(m_manipulatorController, ManipulatorConstants.kManipulatorXButton);
     // Trigger manipulatorYButton = new JoystickButton(m_manipulatorController,
     // ManipulatorConstants.kManiputatorYButton);
     Trigger manipulatorLeftShoulder = new JoystickButton(m_manipulatorController, ManipulatorConstants.kManipulatorLeftShoulder);
@@ -146,31 +139,29 @@ public class RobotContainer {
     Trigger manipulatorLeftTrigger = new JoystickButton(m_manipulatorController, ManipulatorConstants.kManipulatorLeftTrigger);
     Trigger manipulatorRightTrigger = new JoystickButton(m_manipulatorController, ManipulatorConstants.kManipulatorRightTrigger);
 
-    // manipulatorBButton.onTrue(new RunClimb(m_climb, ClimbHeight.LOW)); //moves
+    manipulatorBButton.whileTrue(new RunShooter(m_shooter, .20)); //moves
     // the shooter to low
-    // manipulatorAButton.onTrue(new RunClimb(m_climb, ClimbHeight.MID)); //moves
+    manipulatorAButton.whileTrue(new RunShooter(m_shooter, .39)); //moves
     // the shooter to mid
-    // manipulatorXButton.onTrue(new RunClimb(m_climb, ClimbHeight.HIGH)); // moves
+    manipulatorXButton.whileTrue(new RunShooter(m_shooter, .65)); // moves
     // the shooter to high
-    // manipulatorYButton.onTrue(new RunClimb(m_climb, ClimbHeight.MAX)); // moves
+    //manipulatorYButton.whileTrue(new RunShooter(m_shooter)); // moves
     // the shooter to MAX (might remove)
     manipulatorLeftShoulder.whileTrue(Commands.parallel(new RunIntake(m_intake,
-    -.25), new RunUptake(m_uptake, -.25))); //Runs intake and uptake backwards
+    -.25), new RunUptake(m_uptake, -.25), new RunShooter(m_shooter, -.5))); //Runs intake and uptake backwards
     manipulatorRightShoulder.whileTrue(new RunUptake(m_uptake, .26)); // pops a note
     // into shooter
-    manipulatorLeftTrigger.whileTrue(new RunShooter(m_shooter, .65)); // revs the
+    manipulatorLeftTrigger.whileTrue(new RunShooter(m_shooter, .45)); // revs the //.65 speed for speaker //.20 speed for amp //.45 speed for trap
     // shooter
     manipulatorRightTrigger.whileTrue(Commands.parallel(new RunIntake(m_intake, .5), new RunUptake(m_uptake, .25))); // runs intake and shooter and stops after
     // a note hits the uptake
-   
+    
+   //manipulatorBButton.whileTrue(new RunClimb(m_climb, -.5));
+  //manipulatorAButton.whileTrue(new RunClimb(m_climb, .5));
 
   }
 
   public Command getAutonomousCommand() {
-    // PathPlannerPath path =
-    // PathPlannerPath.fromPathFile(SmartDashboard.getString("Auto Chooser",
-    // autoChooser)); //change later bc im lazy
-
     // PathConstraints constraints = new PathConstraints(
     // DriveConstants.kMaxSpeedMetersPerSecond,
     // DriveConstants.kMaxAccelerationMetersPerSecond,
@@ -188,8 +179,7 @@ public class RobotContainer {
 
     // return new PathPlannerAuto("Test");
     //return autoChooser.getSelected();
-    PathPlannerPath path = PathPlannerPath.fromPathFile("Test2");
-    return AutoBuilder.followPath(path);
+    return new PathPlannerAuto("Test Auto");
   }
 
 }

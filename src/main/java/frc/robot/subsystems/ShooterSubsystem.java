@@ -17,6 +17,8 @@ public class ShooterSubsystem extends SubsystemBase {
     private final RelativeEncoder m_lowEncoder; 
     private final RelativeEncoder m_highEncoder; 
 
+    //private final PIDController
+
     public ShooterSubsystem() { //add some PID stuff maybe??
         m_lowShooter = new CANSparkMax(ShooterConstants.kLowShooterMotorPort, MotorType.kBrushless); 
         m_highShooter = new CANSparkMax(ShooterConstants.kHighShooterMotorPort, MotorType.kBrushless); 
@@ -46,5 +48,7 @@ public class ShooterSubsystem extends SubsystemBase {
         m_lowShooter.set(speed);
         m_highShooter.set(speed);
     }
+
+
 
 }

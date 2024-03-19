@@ -35,8 +35,8 @@ public class DriveSubsystem extends SubsystemBase {
   public DriveSubsystem() {
     
     AutoBuilder.configureHolonomic(
-      this::getPose,
-      this::resetPose,
+      () -> {var x = getPose(); System.out.println("Pose: " + x.getX() + " " + x.getY() + " " + x.getRotation().getDegrees()); return x; },
+      (pose) -> {System.out.println("Resetting Pose: "); resetPose(pose);},
       this::getCurrentSpeeds,
       this::autoDrive,
       new HolonomicPathFollowerConfig(
@@ -44,18 +44,15 @@ public class DriveSubsystem extends SubsystemBase {
         new PIDConstants(5.0, 0.0, 0.0),
         new PIDConstants(5.0, 0.0, 0.0),
         4.8, 
-        0.41, //maybe change ("Drive base radius in meters. Distance from robot center to furthest module.")
+        0.33, //maybe change ("Drive base radius in meters. Distance from robot center to furthest module.")
         new ReplanningConfig()
       ),
-      () -> {
-        if (DriverStation.isDSAttached() == true) {
-          var alliance = DriverStation.getAlliance(); 
-          if(alliance.get() == DriverStation.Alliance.Red) {
-            return true; 
+      () -> { 
+        var alliance = DriverStation.getAlliance(); 
+          if (alliance.isPresent()) {
+            return alliance.get() == DriverStation.Alliance.Red;
           }
-        }
-        //return false;  
-        return true; 
+          return false; 
       },
       this
     );
@@ -96,10 +93,11 @@ public class DriveSubsystem extends SubsystemBase {
     m_rearRight.setDesiredState(swerveModuleStates[3]);
   }
 
-  //drive method for path palanner 
+  //drive method for path planner 
   public void autoDrive(ChassisSpeeds speeds) {
+    System.out.println("Speeds: " + speeds.vxMetersPerSecond + " " + speeds.vyMetersPerSecond + " " + speeds.omegaRadiansPerSecond);
     var swerveModuleStates = DriveConstants.kDriveKinematics.toSwerveModuleStates(discretize(
-      speeds, DriveConstants.kDriverPeriod
+    speeds, DriveConstants.kDriverPeriod
     ));
     
     SwerveDriveKinematics.desaturateWheelSpeeds(swerveModuleStates, DriveConstants.kMaxSpeedMetersPerSecond);
@@ -232,6 +230,7 @@ public class DriveSubsystem extends SubsystemBase {
   @Override
   public void periodic() {
     publisher.set(new SwerveModuleState[] {m_frontLeft.getState(), m_frontRight.getState(), m_rearLeft.getState(), m_rearRight.getState()}); 
+    m_driveOdometry.update(m_gyro.getRotation2d().unaryMinus(), new SwerveModulePosition[] {m_frontLeft.getPosition(), m_frontRight.getPosition(), m_rearLeft.getPosition(), m_rearRight.getPosition()});
   }
 
   @Override
