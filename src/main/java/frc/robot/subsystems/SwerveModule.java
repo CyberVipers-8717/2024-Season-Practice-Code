@@ -12,15 +12,15 @@ import com.revrobotics.SparkPIDController.AccelStrategy;
 
 import frc.robot.Constants.DriveConstants;
 import frc.robot.Constants.SwerveModuleConstants;
-import edu.wpi.first.math.MathSharedStore;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.util.sendable.Sendable;
-import edu.wpi.first.util.sendable.SendableBuilder;
+import edu.wpi.first.math.controller.PIDController; 
+import edu.wpi.first.math.controller.ProfiledPIDController;
+import edu.wpi.first.math.trajectory.TrapezoidProfile;
 
 //setting up all the default attributes for a swerve module, pretty much creates a swerve module object for us to work with
-public class SwerveModule implements Sendable {
+public class SwerveModule{
 // all these reassign labels for the module
   private final CANSparkMax m_driveMotor; 
   private final CANSparkMax m_turnMotor; 
@@ -28,8 +28,11 @@ public class SwerveModule implements Sendable {
   private final RelativeEncoder m_driveEncoder;
   private final AbsoluteEncoder m_turnEncoder; 
 
-  public final SparkPIDController m_drivePID; //change back to private
-  public final SparkPIDController m_turnPID;  
+  //public final SparkPIDController m_drivePID; //change back to private
+  //public final SparkPIDController m_turnPID;  //commented out for now
+
+  private final PIDController m_drivePID = new PIDController(SwerveModuleConstants.kDriveP, 0, 0);
+  private final ProfiledPIDController m_turnPID = new ProfiledPIDController(SwerveModuleConstants.kTurnP,0,0, new TrapezoidProfile.Constraints(DriveConstants.kMaxAngularSpeed, DriveConstants.kMaxAngularAcceleration));
 
   private double m_chassisAngularOffset = 0; // default chassis offset //angle the swerve is installed 
   private SwerveModuleState m_desiredState = new SwerveModuleState(0.0, new Rotation2d());  
@@ -48,11 +51,11 @@ public class SwerveModule implements Sendable {
     m_driveEncoder = m_driveMotor.getEncoder();  // sets the encoder for the drive motor
     m_turnEncoder = m_turnMotor.getAbsoluteEncoder(SparkAbsoluteEncoder.Type.kDutyCycle); // sets the encoder for the turn motor
 
-    m_drivePID = m_driveMotor.getPIDController();  // gets the PID controller for the drive motor
-    m_turnPID = m_turnMotor.getPIDController(); // gets the PID controller for the turn motor
+    // m_drivePID = m_driveMotor.getPIDController();  // gets the PID controller for the drive motor
+    // m_turnPID = m_turnMotor.getPIDController(); // gets the PID controller for the turn motor
 
-    m_drivePID.setFeedbackDevice(m_driveEncoder); 
-    m_turnPID.setFeedbackDevice(m_turnEncoder); 
+    // m_drivePID.setFeedbackDevice(m_driveEncoder); 
+    // m_turnPID.setFeedbackDevice(m_turnEncoder); 
 
     m_driveEncoder.setPositionConversionFactor(SwerveModuleConstants.kDriveEncoderPositionFactor); //converts from rotations to meters
     m_driveEncoder.setVelocityConversionFactor(SwerveModuleConstants.kDriveEncoderVelocityFactor); //converts from rpm to meters per second
@@ -62,30 +65,30 @@ public class SwerveModule implements Sendable {
 
     m_turnEncoder.setInverted(SwerveModuleConstants.kTurnEncoderInverted); 
     
-    m_turnPID.setPositionPIDWrappingEnabled(SwerveModuleConstants.kTurnEncoderWrapping);
-    m_turnPID.setPositionPIDWrappingMinInput(SwerveModuleConstants.kTurnEncoderPositionPIDMinInput);
-    m_turnPID.setPositionPIDWrappingMaxInput(SwerveModuleConstants.kTurnEncoderPositionPIDMaxInput);
+    // m_turnPID.setPositionPIDWrappingEnabled(SwerveModuleConstants.kTurnEncoderWrapping);
+    // m_turnPID.setPositionPIDWrappingMinInput(SwerveModuleConstants.kTurnEncoderPositionPIDMinInput);
+    // m_turnPID.setPositionPIDWrappingMaxInput(SwerveModuleConstants.kTurnEncoderPositionPIDMaxInput);
 
 // sets the gains for the PID controller, change the constants later
-    m_drivePID.setP(SwerveModuleConstants.kDriveP); 
-    m_drivePID.setI(SwerveModuleConstants.kDriveI);
-    m_drivePID.setD(SwerveModuleConstants.kDriveD);
-    m_drivePID.setFF(SwerveModuleConstants.kDriveFF);
-    m_drivePID.setOutputRange(SwerveModuleConstants.kDriveMinOutput, SwerveModuleConstants.kDriveMaxOutout); 
+    // m_drivePID.setP(SwerveModuleConstants.kDriveP); 
+    // m_drivePID.setI(SwerveModuleConstants.kDriveI);
+    // m_drivePID.setD(SwerveModuleConstants.kDriveD);
+    // m_drivePID.setFF(SwerveModuleConstants.kDriveFF);
+    // m_drivePID.setOutputRange(SwerveModuleConstants.kDriveMinOutput, SwerveModuleConstants.kDriveMaxOutout); 
 
 // sets the gains for the PID controller, change the constants later
-    m_turnPID.setP(SwerveModuleConstants.kTurnP); 
-    m_turnPID.setI(SwerveModuleConstants.kTurnI);
-    m_turnPID.setD(SwerveModuleConstants.kTurnD);
-    m_turnPID.setFF(SwerveModuleConstants.kTurnFF);
-    m_turnPID.setOutputRange(SwerveModuleConstants.kTurnMinOutput, SwerveModuleConstants.kTurnMaxOutput); 
+    // m_turnPID.setP(SwerveModuleConstants.kTurnP); 
+    // m_turnPID.setI(SwerveModuleConstants.kTurnI);
+    // m_turnPID.setD(SwerveModuleConstants.kTurnD);
+    // m_turnPID.setFF(SwerveModuleConstants.kTurnFF);
+    // m_turnPID.setOutputRange(SwerveModuleConstants.kTurnMinOutput, SwerveModuleConstants.kTurnMaxOutput); 
 
 //controls the motion profile of the pid for smoother motion
-    m_drivePID.setSmartMotionAccelStrategy(AccelStrategy.kTrapezoidal, 1);
-    m_turnPID.setSmartMotionAccelStrategy(AccelStrategy.kTrapezoidal, 1);
+    // m_drivePID.setSmartMotionAccelStrategy(AccelStrategy.kTrapezoidal, 1);
+    // m_turnPID.setSmartMotionAccelStrategy(AccelStrategy.kTrapezoidal, 1);
 
 // controls whether the robot is doing anything or not
-    m_driveMotor.setIdleMode(com.revrobotics.CANSparkBase.IdleMode.kBrake);
+    m_driveMotor.setIdleMode(IdleMode.kCoast); //com.revrobotics.CANSparkBase.IdleMode.kBrake
     m_turnMotor.setIdleMode(IdleMode.kCoast);
 
 // sets the amp limits for the drive motor and the turn motor
@@ -95,6 +98,9 @@ public class SwerveModule implements Sendable {
 // safety for in case the motors brown out
     m_driveMotor.burnFlash();
     m_turnMotor.burnFlash(); 
+
+    //new 
+    m_turnPID.enableContinuousInput(-Math.PI, Math.PI);
     
     m_driveEncoder.setPosition(0);
     m_desiredState.angle = new Rotation2d(m_turnEncoder.getPosition());
@@ -131,17 +137,28 @@ public class SwerveModule implements Sendable {
     //set this up for me thanks pookies
        // creates a state for what we want
     SwerveModuleState correctedDesiredState = new SwerveModuleState(); 
+    
     // sets our desired speed
     correctedDesiredState.speedMetersPerSecond = desiredState.speedMetersPerSecond; 
+    
     // adds the offset to the desired angle
     correctedDesiredState.angle = desiredState.angle.plus(Rotation2d.fromRadians(m_chassisAngularOffset));
     
     // minimizes the angle change needed to achieve what we need
     SwerveModuleState optimizedDesiredState = SwerveModuleState.optimize(correctedDesiredState, Rotation2d.fromRadians(m_turnEncoder.getPosition()));
 
+    //new (scales down movement perpendicular to the desired direction of travel that can occur when modules change directions)
+    optimizedDesiredState.speedMetersPerSecond *= optimizedDesiredState.angle.minus(Rotation2d.fromRadians(m_turnEncoder.getPosition)).getCos();
+
     // tells the robot which states we want.
-    m_drivePID.setReference(optimizedDesiredState.speedMetersPerSecond, CANSparkMax.ControlType.kVelocity);
-    m_turnPID.setReference(optimizedDesiredState.angle.getRadians(), CANSparkMax.ControlType.kPosition); 
+    // m_drivePID.setReference(optimizedDesiredState.speedMetersPerSecond, CANSparkMax.ControlType.kVelocity);
+    // m_turnPID.setReference(optimizedDesiredState.angle.getRadians(), CANSparkMax.ControlType.kPosition); 
+    
+    //new (calculates setpoints for pid controllers)
+    double driveOutput = m_drivePIDController.calculate(m_driveEncoder.getVelocity(), optimizedDesiredState.speedMetersPerSecond);
+    double turnOutput = m_turnPIDController.calculate(m_turnEncoder.getPosition(), optimizedDesiredState.angle.getRadians());
+    m_drivePID.set(driveOutput);
+    m_turnPID.set(turnOutput);
 
     m_desiredState = desiredState; 
   }
@@ -158,33 +175,6 @@ public class SwerveModule implements Sendable {
   //   m_turnPID.setReference(m_currentState.angle.getRadians(), CANSparkMax.ControlType.kPosition);
   // }
 
-  @Override
-  public void initSendable(SendableBuilder builder) {
-    builder.setSmartDashboardType("PIDController");
-    builder.addDoubleProperty("p", m_drivePID::getP, m_drivePID::setP);
-    builder.addDoubleProperty("i", m_drivePID::getI, m_drivePID::setI);
-    builder.addDoubleProperty("d", m_drivePID::getD, m_drivePID::setD);
-    builder.addDoubleProperty("izone", m_drivePID::getIZone, (double toSet) -> { try {m_drivePID.setIZone(toSet);} catch (IllegalArgumentException e) {
-      MathSharedStore.reportError("IZone must be a non-negative number!", e.getStackTrace());}
-    });
-    builder.addDoubleProperty("setpoint", () -> {return 1;}, (x) -> {m_drivePID.setReference(x, ControlType.kVelocity);});
-  }
-
-    // builder.setSmartDashboardType("PIDController");
-    // builder.addDoubleProperty("p", this::getP, this::setP);
-    // builder.addDoubleProperty("i", this::getI, this::setI);
-    // builder.addDoubleProperty("d", this::getD, this::setD);
-    // builder.addDoubleProperty(
-    //     "izone",
-    //     this::getIZone,
-    //     (double toSet) -> {
-    //       try {
-    //         setIZone(toSet);
-    //       } catch (IllegalArgumentException e) {
-    //         MathSharedStore.reportError("IZone must be a non-negative number!", e.getStackTrace());
-    //       }
-    //     });
-    // builder.addDoubleProperty("setpoint", this::getSetpoint, this::setSetpoint);
 }
 
 

@@ -35,7 +35,9 @@ public class DriveSubsystem extends SubsystemBase {
   
   /** Creates a new ExampleSubsystem. */
   public DriveSubsystem() {
-    
+    //current hypothesis: path planner is generating the right chassis speeds but we have to flip them //fyi chassis speeds are robot relative
+    //however if we flip the speed the pose gets messed up because path planner thinks its going the wrong direction 
+    //possible solutions: mess with the chassis speeds to confirm that the chassis speeds are right, flip the speeds, modify the getpose function to account for the error
     AutoBuilder.configureHolonomic(
       () -> {var x = getPose(); System.out.println("Pose: " + x.getX() + " " + x.getY() + " " + x.getRotation().getDegrees()); return x; },
       (pose) -> {System.out.println("Resetting Pose: "); resetPose(pose);},
@@ -46,7 +48,7 @@ public class DriveSubsystem extends SubsystemBase {
         new PIDConstants(5.0, 0.0, 0.0),
         new PIDConstants(5.0, 0.0, 0.0),
         4.8, 
-        0.33, //maybe change ("Drive base radius in meters. Distance from robot center to furthest module.")
+        0.33, 
         new ReplanningConfig()
       ),
       () -> { 
@@ -98,18 +100,18 @@ public class DriveSubsystem extends SubsystemBase {
 
   //drive method for path following 
   public void autoDrive(ChassisSpeeds speeds) {
-    speeds.vxMetersPerSecond = 1; //forward is backward 
-    speeds.vyMetersPerSecond = 0; 
+    speeds.vxMetersPerSecond = 1; //positive is backward 
+    speeds.vyMetersPerSecond = 0; //experiment with these values to confirm if path planner is generating right speeds
     speeds.omegaRadiansPerSecond = 0; 
     System.out.println("Speeds: " + speeds.vxMetersPerSecond + " " + speeds.vyMetersPerSecond + " " + speeds.omegaRadiansPerSecond); //testing remove later
     var swerveModuleStates = DriveConstants.kDriveKinematics.toSwerveModuleStates(discretize(
     speeds, DriveConstants.kDriverPeriod
     ));
 
-    System.out.println("FrontLeft Pre Speed: " + swerveModuleStates[0].speedMetersPerSecond);
-    System.out.println("FrontRight Pre Speed: " + swerveModuleStates[1].speedMetersPerSecond);
-    System.out.println("RearLeft Pre Speed: " + swerveModuleStates[2].speedMetersPerSecond);
-    System.out.println("RearRight Pre Speed: " + swerveModuleStates[3].speedMetersPerSecond);
+    // System.out.println("FrontLeft Pre Speed: " + swerveModuleStates[0].speedMetersPerSecond);
+    // System.out.println("FrontRight Pre Speed: " + swerveModuleStates[1].speedMetersPerSecond);
+    // System.out.println("RearLeft Pre Speed: " + swerveModuleStates[2].speedMetersPerSecond);
+    // System.out.println("RearRight Pre Speed: " + swerveModuleStates[3].speedMetersPerSecond);
     
     SwerveDriveKinematics.desaturateWheelSpeeds(swerveModuleStates, DriveConstants.kMaxSpeedMetersPerSecond);
 
@@ -118,10 +120,10 @@ public class DriveSubsystem extends SubsystemBase {
     m_rearLeft.setDesiredState(swerveModuleStates[2]);
     m_rearRight.setDesiredState(swerveModuleStates[3]);
 
-    System.out.println("FrontLeft: " + m_frontLeft.getState().speedMetersPerSecond);
-    System.out.println("FrontRight: " + m_frontRight.getState().speedMetersPerSecond);
-    System.out.println("RearLeft: " + m_rearLeft.getState().speedMetersPerSecond);
-    System.out.println("RearRight: " + m_rearRight.getState().speedMetersPerSecond);
+    // System.out.println("FrontLeft: " + m_frontLeft.getState().speedMetersPerSecond);
+    // System.out.println("FrontRight: " + m_frontRight.getState().speedMetersPerSecond);
+    // System.out.println("RearLeft: " + m_rearLeft.getState().speedMetersPerSecond);
+    // System.out.println("RearRight: " + m_rearRight.getState().speedMetersPerSecond);
   
   }
 
@@ -197,6 +199,7 @@ public class DriveSubsystem extends SubsystemBase {
   }
 
   //should work (maybe)?
+  //might need to modify pose to account for flipped chassis speeds
   public Pose2d getPose(){
     return m_driveOdometry.getPoseMeters();
   }
