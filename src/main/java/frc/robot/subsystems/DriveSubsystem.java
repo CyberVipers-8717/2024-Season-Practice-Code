@@ -5,6 +5,8 @@
 package frc.robot.subsystems;
 
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.DriveConstants;
 import frc.robot.Constants.SwerveModuleConstants;
@@ -96,10 +98,18 @@ public class DriveSubsystem extends SubsystemBase {
 
   //drive method for path following 
   public void autoDrive(ChassisSpeeds speeds) {
+    speeds.vxMetersPerSecond = 1; //forward is backward 
+    speeds.vyMetersPerSecond = 0; 
+    speeds.omegaRadiansPerSecond = 0; 
     System.out.println("Speeds: " + speeds.vxMetersPerSecond + " " + speeds.vyMetersPerSecond + " " + speeds.omegaRadiansPerSecond); //testing remove later
     var swerveModuleStates = DriveConstants.kDriveKinematics.toSwerveModuleStates(discretize(
     speeds, DriveConstants.kDriverPeriod
     ));
+
+    System.out.println("FrontLeft Pre Speed: " + swerveModuleStates[0].speedMetersPerSecond);
+    System.out.println("FrontRight Pre Speed: " + swerveModuleStates[1].speedMetersPerSecond);
+    System.out.println("RearLeft Pre Speed: " + swerveModuleStates[2].speedMetersPerSecond);
+    System.out.println("RearRight Pre Speed: " + swerveModuleStates[3].speedMetersPerSecond);
     
     SwerveDriveKinematics.desaturateWheelSpeeds(swerveModuleStates, DriveConstants.kMaxSpeedMetersPerSecond);
 
@@ -107,6 +117,12 @@ public class DriveSubsystem extends SubsystemBase {
     m_frontRight.setDesiredState(swerveModuleStates[1]);
     m_rearLeft.setDesiredState(swerveModuleStates[2]);
     m_rearRight.setDesiredState(swerveModuleStates[3]);
+
+    System.out.println("FrontLeft: " + m_frontLeft.getState().speedMetersPerSecond);
+    System.out.println("FrontRight: " + m_frontRight.getState().speedMetersPerSecond);
+    System.out.println("RearLeft: " + m_rearLeft.getState().speedMetersPerSecond);
+    System.out.println("RearRight: " + m_rearRight.getState().speedMetersPerSecond);
+  
   }
 
   //thanks to pookie bear dookie bear aaron for creatin gthis method
@@ -194,7 +210,7 @@ public class DriveSubsystem extends SubsystemBase {
   }
   
   public SwerveModuleState[] getStates() {
-    return new SwerveModuleState[] {m_frontLeft.getState(), m_frontRight.getState(), m_rearLeft.getState(), m_rearRight.getState()}
+    return new SwerveModuleState[] {m_frontLeft.getState(), m_frontRight.getState(), m_rearLeft.getState(), m_rearRight.getState()};
   }
 
     public ChassisSpeeds getCurrentSpeeds() {
@@ -212,6 +228,14 @@ public class DriveSubsystem extends SubsystemBase {
   @Override
   public void simulationPeriodic() {
     // This method will be called once per scheduler run during simulation
+  }
+
+  public Command resetGyro() {
+    return new InstantCommand(() -> {m_gyro.reset();}, this);
+  }
+
+  public Command xWheels() {
+    return new RunCommand(() -> {m_frontLeft.setDesiredState(new SwerveModuleState(0, new Rotation2d(Math.PI/4))); m_frontRight.setDesiredState(new SwerveModuleState(0, new Rotation2d(-Math.PI/4))); m_rearLeft.setDesiredState(new SwerveModuleState(0, new Rotation2d(-Math.PI/4))); m_rearRight.setDesiredState(new SwerveModuleState(0, new Rotation2d(Math.PI/4)));}, this);
   }
 
 }

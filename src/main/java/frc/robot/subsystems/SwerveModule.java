@@ -10,6 +10,7 @@ import com.revrobotics.CANSparkBase.IdleMode;
 import com.revrobotics.CANSparkLowLevel.MotorType;
 import com.revrobotics.SparkPIDController.AccelStrategy;
 
+import frc.robot.Constants.DriveConstants;
 import frc.robot.Constants.SwerveModuleConstants;
 import edu.wpi.first.math.MathSharedStore;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -32,6 +33,8 @@ public class SwerveModule implements Sendable {
 
   private double m_chassisAngularOffset = 0; // default chassis offset //angle the swerve is installed 
   private SwerveModuleState m_desiredState = new SwerveModuleState(0.0, new Rotation2d());  
+  private SwerveModuleState m_currentState = new SwerveModuleState();
+  private SwerveModulePosition m_currentPosition = new SwerveModulePosition(); 
 
 // the following constructor sets all the attributes for a swerve module for initialization
   public SwerveModule(int driveMotorId, int turnMotorId, double chassisAngularOffset) {
@@ -142,6 +145,18 @@ public class SwerveModule implements Sendable {
 
     m_desiredState = desiredState; 
   }
+
+  // public void autoTargetState(SwerveModuleState targetState) {
+  //   SwerveModuleState correctedTargetState = new SwerveModuleState();
+  //   correctedTargetState.speedMetersPerSecond = targetState.speedMetersPerSecond; 
+  //   correctedTargetState.angle = targetState.angle.plus(Rotation2d.fromRadians(m_chassisAngularOffset)); 
+  //   m_currentState = SwerveModuleState.optimize(targetState, Rotation2d.fromRadians(m_turnEncoder.getPosition()));
+
+  //   //updates current Swerve Position
+  //   m_currentPosition = new SwerveModulePosition(m_currentPosition.distanceMeters + (m_currentState.speedMetersPerSecond * DriveConstants.kDriverPeriod), m_currentState.angle);
+  //   m_drivePID.setReference(m_currentState.speedMetersPerSecond, CANSparkMax.ControlType.kVelocity);
+  //   m_turnPID.setReference(m_currentState.angle.getRadians(), CANSparkMax.ControlType.kPosition);
+  // }
 
   @Override
   public void initSendable(SendableBuilder builder) {

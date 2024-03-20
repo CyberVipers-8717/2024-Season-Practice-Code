@@ -103,14 +103,14 @@ public final class Constants {
     public static final double kTurnEncoderPositionPIDMaxInput = 2 * Math.PI; 
 
     //gains for drive motor PID (test and change) weewee
-    public static final double kDriveP = 0.04;
+    public static final double kDriveP = 0.04;//0.04
     public static final double kDriveI = 0; 
     public static final double kDriveD = 0; 
     public static final double kDriveFF = 1 / kDriveWheelFreeSpeedRps; 
     public static final double kDriveMinOutput = -1; 
     public static final double kDriveMaxOutout = 1; 
 
-    public static final double kTurnP = 1;
+    public static final double kTurnP = 1; //1
     public static final double kTurnI = 0;
     public static final double kTurnD = 0;
     public static final double kTurnFF = 0;

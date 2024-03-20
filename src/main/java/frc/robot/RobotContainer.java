@@ -127,7 +127,8 @@ public class RobotContainer {
     // OperatorConstants.kDriverLeftTrigger);
     // Trigger driverRightTrigger = new JoystickButton(m_driverController,
     // OperatorConstants.kDriverRightTrigger);
-
+    Trigger driverAButton = new JoystickButton(m_driverController, OperatorConstants.kDriverAButton);
+    Trigger driverXButton = new JoystickButton(m_driverController, OperatorConstants.kDriverXButton);
     // //manipulator controls
     Trigger manipulatorBButton = new JoystickButton(m_manipulatorController, ManipulatorConstants.kManipulatorBButton);
     Trigger manipulatorAButton = new JoystickButton(m_manipulatorController, ManipulatorConstants.kManipulatorAButton);
@@ -158,6 +159,10 @@ public class RobotContainer {
     
    //manipulatorBButton.whileTrue(new RunClimb(m_climb, -.5));
   //manipulatorAButton.whileTrue(new RunClimb(m_climb, .5));
+    
+    //ask mark 
+    driverAButton.onTrue(m_robotDrive.resetGyro());
+    driverXButton.onTrue(m_robotDrive.xWheels());
 
   }
 
