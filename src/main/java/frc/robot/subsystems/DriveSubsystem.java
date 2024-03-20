@@ -63,9 +63,7 @@ public class DriveSubsystem extends SubsystemBase {
     );
   }
 
-  //creating objects for eachs werve module bc idk what im doing
-  //needs a @param for angular offset. I placed -1 as placeholders, but pls replace w whatever when it is figured out
-
+  //declaring swerve modules (change to private after tuning)
   public final SwerveModule m_frontLeft = new SwerveModule(DriveConstants.kFrontLeftDriveMotorPort, DriveConstants.kFrontLeftTurnMotorPort, Math.PI/2); //change back to private 
   public final SwerveModule m_frontRight = new SwerveModule(DriveConstants.kFrontRightDriveMotorPort, DriveConstants.kFrontRightTurnMotorPort, Math.PI);
   public final SwerveModule m_rearLeft = new SwerveModule(DriveConstants.kRearLeftDriveMotorPort, DriveConstants.kRearLeftTurnMotorPort, 0);
@@ -73,32 +71,32 @@ public class DriveSubsystem extends SubsystemBase {
 
   private final SwerveModulePosition[] m_swervePositions = getPositions();
   
+  //gyro to find robot's heading/angle 
   private final ADXRS450_Gyro m_gyro = new ADXRS450_Gyro();
 
+  //odometry object to track the robots pose on the field
   private final SwerveDriveOdometry m_driveOdometry = new SwerveDriveOdometry(DriveConstants.kDriveKinematics, m_gyro.getRotation2d().unaryMinus(), m_swervePositions);
 
   //serializes and publishes data for visualization using advantagescope 
   private final StructArrayPublisher<SwerveModuleState> publisher = NetworkTableInstance.getDefault().getStructArrayTopic("MyStates", SwerveModuleState.struct).publish();
 
-  //getting drive command going
-  //@param rot = angular rate of robot
+  //default drive method that converts controller input into field centric robot movement
   public void drive(double xSpeed, double ySpeed, double arr){
-    var swerveModuleStates = DriveConstants.kDriveKinematics.toSwerveModuleStates(discretize( //this method is supposed to come from ChassisSpeeds, but is a bozo n does not exist for some reason
-      tofieldRelative(xSpeed, ySpeed, arr), DriveConstants.kDriverPeriod
-    ));
+    //generates array of swerve module states from controller input
+    var swerveModuleStates = DriveConstants.kDriveKinematics.toSwerveModuleStates(ChassisSpeeds.discretize(
+      tofieldRelative(xSpeed, ySpeed, arr), DriveConstants.kDriverPeriod));
 
-    //this next line ensures that wheels dont go as fast as a train
+    //caps wheel speeds to ensure they don't go faster than they're allowed to 
     SwerveDriveKinematics.desaturateWheelSpeeds(swerveModuleStates, DriveConstants.kMaxSpeedMetersPerSecond);
 
-    //these 4 lines actually make thingies move
-    //keep in mind this is being recalled every 20ms bc i am smooth brained
+    //sends the swerve module states to the pid controllers 
     m_frontLeft.setDesiredState(swerveModuleStates[0]);
     m_frontRight.setDesiredState(swerveModuleStates[1]);
     m_rearLeft.setDesiredState(swerveModuleStates[2]);
     m_rearRight.setDesiredState(swerveModuleStates[3]);
   }
 
-  //drive method for path following 
+  //auto drive method for path following 
   public void autoDrive(ChassisSpeeds speeds) {
     speeds.vxMetersPerSecond = 1; //positive is backward 
     speeds.vyMetersPerSecond = 0; //experiment with these values to confirm if path planner is generating right speeds
@@ -126,17 +124,8 @@ public class DriveSubsystem extends SubsystemBase {
     // System.out.println("RearRight: " + m_rearRight.getState().speedMetersPerSecond);
   
   }
-
-  //thanks to pookie bear dookie bear aaron for creatin gthis method
-  //tyler needs to learn understand this later 
-  //should get rid of this implentation and use the one built into wpilib
-  public ChassisSpeeds discretize(ChassisSpeeds continuousSpeeds, double dtSeconds) {
-    Pose2d desiredDeltaPose = new Pose2d(
-      continuousSpeeds.vxMetersPerSecond*dtSeconds, continuousSpeeds.vyMetersPerSecond*dtSeconds, new Rotation2d(continuousSpeeds.omegaRadiansPerSecond*dtSeconds));
-    Twist2d twist = new Pose2d().log(desiredDeltaPose); 
-    return new ChassisSpeeds(twist.dx/dtSeconds, twist.dy/dtSeconds, twist.dtheta/dtSeconds);
-  }
-
+  
+  //Generates field-centric chassis speeds
   public ChassisSpeeds tofieldRelative(double xSpeed, double ySpeed, double angVel) {
     double hypot = Math.hypot(xSpeed, ySpeed);
     double angle = findControllerAngle(-xSpeed, ySpeed); //radians
@@ -159,7 +148,9 @@ public class DriveSubsystem extends SubsystemBase {
     return new ChassisSpeeds(realMagnitudes[0],realMagnitudes[1], angVel);
   }
 
-  public double findControllerAngle(double y, double x) { //deals with weird negative angles 
+  //finds the angle of the left joystick in radians
+  //the offsets are a work around to deal with any negative angles fom atan2
+  public double findControllerAngle(double y, double x) { 
     if(y == 0 && x == 0) {
       return 0; 
     }
@@ -169,6 +160,7 @@ public class DriveSubsystem extends SubsystemBase {
     return Math.atan2(y,x)-Math.PI/2; 
   }
 
+  //simple function to find the positive relative angle in radians
   public double findRelativeAngle(double angRad, double gyro) {
     double adjustedAngle = Math.toDegrees(angRad - gyro); 
     while(Math.abs(adjustedAngle) > 0) { //finds positive relative angle 
@@ -184,6 +176,7 @@ public class DriveSubsystem extends SubsystemBase {
     return Math.toRadians(adjustedAngle); 
   }
 
+  //calculates the signs of the magnitudes depending on the current angle 
   public double[] findFieldRelativeMagnitudes(double vxMag, double vyMag, double angRad) {
     double angDeg = Math.toDegrees(angRad);
     if((angDeg>=0||angDeg==360)&&angDeg<90) {
@@ -204,19 +197,26 @@ public class DriveSubsystem extends SubsystemBase {
     return m_driveOdometry.getPoseMeters();
   }
   
+  //resets the pose of the odometry to the pose supplied 
   public void resetPose(Pose2d pose){
     m_driveOdometry.resetPosition(m_gyro.getRotation2d().unaryMinus(), getPositions(), pose);
   }
 
+  //gets the current positions of the swerve modules 
+  //at the start this will return zero for all modules 
   public SwerveModulePosition[] getPositions() {
     return new SwerveModulePosition[] {m_frontLeft.getPosition(), m_frontRight.getPosition(), m_rearLeft.getPosition(), m_rearRight.getPosition()};
   }
   
+  //gets the current state of the swerve modules
+  //at the start this should be 0 m/s and the Rotation2d representing the current angle of the wheels 
   public SwerveModuleState[] getStates() {
     return new SwerveModuleState[] {m_frontLeft.getState(), m_frontRight.getState(), m_rearLeft.getState(), m_rearRight.getState()};
   }
 
-    public ChassisSpeeds getCurrentSpeeds() {
+  //gets the chassis speed represeting the speed the wheels are moving in
+  //at the start this should be zero 
+  public ChassisSpeeds getCurrentSpeeds() {
       return DriveConstants.kDriveKinematics.toChassisSpeeds(getStates());
   }
 
@@ -233,10 +233,12 @@ public class DriveSubsystem extends SubsystemBase {
     // This method will be called once per scheduler run during simulation
   }
 
+  //simple command to reset the gyro incase it gets out of alignment
   public Command resetGyro() {
     return new InstantCommand(() -> {m_gyro.reset();}, this);
   }
 
+  //X's the wheels to lock them in place
   public Command xWheels() {
     return new RunCommand(() -> {m_frontLeft.setDesiredState(new SwerveModuleState(0, new Rotation2d(Math.PI/4))); m_frontRight.setDesiredState(new SwerveModuleState(0, new Rotation2d(-Math.PI/4))); m_rearLeft.setDesiredState(new SwerveModuleState(0, new Rotation2d(-Math.PI/4))); m_rearRight.setDesiredState(new SwerveModuleState(0, new Rotation2d(Math.PI/4)));}, this);
   }

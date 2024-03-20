@@ -9,21 +9,22 @@ public class RunClimb extends Command {
     private double encoderPosition; 
     private ClimbHeight height; 
     
-    //fixed commands for low, medium, and high climb
     public enum ClimbHeight {
         LOW, MID, HIGH, MAX, NULL; 
     }
 
-    public RunClimb(ClimbSubsystem climbSubsystem, double speed) { // constructor to use for direct controller of climb
+    //constructor to use for direct control of climb (might remove)
+    public RunClimb(ClimbSubsystem climbSubsystem, double speed) {
         this.height = ClimbHeight.NULL; 
         m_climb = climbSubsystem;
         this.speed = speed;
         addRequirements(m_climb);
     }
 
-    
+    //default full speed constructor
     public RunClimb(ClimbSubsystem climbSubsystem, ClimbHeight height) { 
         this.height = height; 
+        //all temporary encoder values (test and change)
         switch(height) {
             case LOW:
                 encoderPosition = 68;
@@ -41,8 +42,10 @@ public class RunClimb extends Command {
         addRequirements(m_climb);
     }
 
+    //variable speed constructor 
     public RunClimb(ClimbSubsystem climbSubsystem, ClimbHeight height, double speed) { 
         this.height = height; 
+        //all temporary encoder values (test and change)
         switch(height) {
             case LOW:
                 encoderPosition = 68;
@@ -75,7 +78,7 @@ public class RunClimb extends Command {
     }
 
     @Override 
-    public boolean isFinished() { //false: runs continuously, true: runs once and stops
+    public boolean isFinished() { 
         if(height == ClimbHeight.NULL) { //checks to see if using direct input 
             return false; 
         } else if (m_climb.getPosition() >= encoderPosition) {

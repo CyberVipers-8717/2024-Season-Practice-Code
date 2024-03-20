@@ -19,9 +19,8 @@ import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 
-//setting up all the default attributes for a swerve module, pretty much creates a swerve module object for us to work with
 public class SwerveModule{
-// all these reassign labels for the module
+
   private final CANSparkMax m_driveMotor; 
   private final CANSparkMax m_turnMotor; 
   
@@ -31,20 +30,20 @@ public class SwerveModule{
   //public final SparkPIDController m_drivePID; //change back to private
   //public final SparkPIDController m_turnPID;  //commented out for now
 
-  private final PIDController m_drivePID = new PIDController(SwerveModuleConstants.kDriveP, 0, 0);
-  private final ProfiledPIDController m_turnPID = new ProfiledPIDController(SwerveModuleConstants.kTurnP,0,0, new TrapezoidProfile.Constraints(DriveConstants.kMaxAngularSpeed, DriveConstants.kMaxAngularAcceleration));
+  //new (change to private and final after tuning)
+  public PIDController m_drivePID = new PIDController(SwerveModuleConstants.kDriveP, 0, 0);
+  public ProfiledPIDController m_turnPID = new ProfiledPIDController(SwerveModuleConstants.kTurnP,0,0, new TrapezoidProfile.Constraints(DriveConstants.kMaxAngularSpeed, DriveConstants.kMaxAngularAcceleration));
 
-  private double m_chassisAngularOffset = 0; // default chassis offset //angle the swerve is installed 
+  private double m_chassisAngularOffset = 0; //default chassis offset //the angle of the module from its calibrated position to being straight
   private SwerveModuleState m_desiredState = new SwerveModuleState(0.0, new Rotation2d());  
   private SwerveModuleState m_currentState = new SwerveModuleState();
   private SwerveModulePosition m_currentPosition = new SwerveModulePosition(); 
 
-// the following constructor sets all the attributes for a swerve module for initialization
   public SwerveModule(int driveMotorId, int turnMotorId, double chassisAngularOffset) {
     m_driveMotor = new CANSparkMax(driveMotorId, MotorType.kBrushless);
     m_turnMotor =  new CANSparkMax(turnMotorId, MotorType.kBrushless);
 
-    //in case any modules are switched out
+    //resets defaults in case module is switched out
     m_driveMotor.restoreFactoryDefaults();
     m_turnMotor.restoreFactoryDefaults(); 
 
@@ -69,45 +68,46 @@ public class SwerveModule{
     // m_turnPID.setPositionPIDWrappingMinInput(SwerveModuleConstants.kTurnEncoderPositionPIDMinInput);
     // m_turnPID.setPositionPIDWrappingMaxInput(SwerveModuleConstants.kTurnEncoderPositionPIDMaxInput);
 
-// sets the gains for the PID controller, change the constants later
+    // sets the gains for the PID controller, change the constants later
     // m_drivePID.setP(SwerveModuleConstants.kDriveP); 
     // m_drivePID.setI(SwerveModuleConstants.kDriveI);
     // m_drivePID.setD(SwerveModuleConstants.kDriveD);
     // m_drivePID.setFF(SwerveModuleConstants.kDriveFF);
     // m_drivePID.setOutputRange(SwerveModuleConstants.kDriveMinOutput, SwerveModuleConstants.kDriveMaxOutout); 
 
-// sets the gains for the PID controller, change the constants later
+    // sets the gains for the PID controller, change the constants later
     // m_turnPID.setP(SwerveModuleConstants.kTurnP); 
     // m_turnPID.setI(SwerveModuleConstants.kTurnI);
     // m_turnPID.setD(SwerveModuleConstants.kTurnD);
     // m_turnPID.setFF(SwerveModuleConstants.kTurnFF);
     // m_turnPID.setOutputRange(SwerveModuleConstants.kTurnMinOutput, SwerveModuleConstants.kTurnMaxOutput); 
 
-//controls the motion profile of the pid for smoother motion
+    //controls the motion profile of the pid for smoother motion
     // m_drivePID.setSmartMotionAccelStrategy(AccelStrategy.kTrapezoidal, 1);
     // m_turnPID.setSmartMotionAccelStrategy(AccelStrategy.kTrapezoidal, 1);
 
-// controls whether the robot is doing anything or not
+    //controls whether you can move the motors while the robot is on 
     m_driveMotor.setIdleMode(IdleMode.kCoast); //com.revrobotics.CANSparkBase.IdleMode.kBrake
     m_turnMotor.setIdleMode(IdleMode.kCoast);
 
-// sets the amp limits for the drive motor and the turn motor
+    //sets the amp limits for the drive motor and the turn motor
     m_driveMotor.setSmartCurrentLimit(SwerveModuleConstants.kDriveCurrentLimit);
     m_turnMotor.setSmartCurrentLimit(SwerveModuleConstants.kTurnCurrentLimit);
     
-// safety for in case the motors brown out
+    //reflashes the motor controllers every boot cycle incase of brown out
     m_driveMotor.burnFlash();
     m_turnMotor.burnFlash(); 
 
     //new 
     m_turnPID.enableContinuousInput(-Math.PI, Math.PI);
     
+    //zeros the drive Encoder on start 
     m_driveEncoder.setPosition(0);
     m_desiredState.angle = new Rotation2d(m_turnEncoder.getPosition());
     m_chassisAngularOffset = chassisAngularOffset;
  }
 
-// Returns the current position and angle of the module
+  //Returns the current position and angle of the module
   public SwerveModulePosition getPosition() { 
     // constructs a new position and angle for each module
     return new SwerveModulePosition(
@@ -117,7 +117,7 @@ public class SwerveModule{
       new Rotation2d(m_turnEncoder.getPosition() - m_chassisAngularOffset)); 
   }
 
-// Returns the current velocity and angle of the module
+  //Returns the current velocity and angle of the module
   public SwerveModuleState getState() {
     // constructs a new velocity and angle for each module 
     return new SwerveModuleState( 
@@ -127,15 +127,14 @@ public class SwerveModule{
       new Rotation2d(m_turnEncoder.getPosition() - m_chassisAngularOffset)); 
   }
 
-// resets all the encoders
+  //resets all the encoders
   public void zeroEncoders() { 
     m_driveEncoder.setPosition(0); 
   }
 
-// inputs what we want as a state
+  //inputs what we want as a state
   public void setDesiredState(SwerveModuleState desiredState) {
-    //set this up for me thanks pookies
-       // creates a state for what we want
+    // creates a state for what we want
     SwerveModuleState correctedDesiredState = new SwerveModuleState(); 
     
     // sets our desired speed
@@ -154,26 +153,18 @@ public class SwerveModule{
     // m_drivePID.setReference(optimizedDesiredState.speedMetersPerSecond, CANSparkMax.ControlType.kVelocity);
     // m_turnPID.setReference(optimizedDesiredState.angle.getRadians(), CANSparkMax.ControlType.kPosition); 
     
-    //new (calculates setpoints for pid controllers)
-    double driveOutput = m_drivePIDController.calculate(m_driveEncoder.getVelocity(), optimizedDesiredState.speedMetersPerSecond);
-    double turnOutput = m_turnPIDController.calculate(m_turnEncoder.getPosition(), optimizedDesiredState.angle.getRadians());
-    m_drivePID.set(driveOutput);
-    m_turnPID.set(turnOutput);
+    //new (calculates voltages for motors)
+    double driveOutput = m_drivePID.calculate(m_driveEncoder.getVelocity(), optimizedDesiredState.speedMetersPerSecond);
+    double turnOutput = m_turnPID.calculate(m_turnEncoder.getPosition(), optimizedDesiredState.angle.getRadians());
 
+    // new (sets motor voltages)
+    m_driveMotor.set(driveOutput);
+    m_turnMotor.set(turnOutput);
+
+    //not entirely sure what this is doing
+    //doesn't have any apparent use 
     m_desiredState = desiredState; 
   }
-
-  // public void autoTargetState(SwerveModuleState targetState) {
-  //   SwerveModuleState correctedTargetState = new SwerveModuleState();
-  //   correctedTargetState.speedMetersPerSecond = targetState.speedMetersPerSecond; 
-  //   correctedTargetState.angle = targetState.angle.plus(Rotation2d.fromRadians(m_chassisAngularOffset)); 
-  //   m_currentState = SwerveModuleState.optimize(targetState, Rotation2d.fromRadians(m_turnEncoder.getPosition()));
-
-  //   //updates current Swerve Position
-  //   m_currentPosition = new SwerveModulePosition(m_currentPosition.distanceMeters + (m_currentState.speedMetersPerSecond * DriveConstants.kDriverPeriod), m_currentState.angle);
-  //   m_drivePID.setReference(m_currentState.speedMetersPerSecond, CANSparkMax.ControlType.kVelocity);
-  //   m_turnPID.setReference(m_currentState.angle.getRadians(), CANSparkMax.ControlType.kPosition);
-  // }
 
 }
 

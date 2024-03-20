@@ -92,9 +92,9 @@ public class Robot extends TimedRobot {
   }
 
   /** This function is called periodically during test mode. */
-  //might need to add c something to get commands and subsystems to display on shuffleboard
   @Override
   public void testPeriodic() {
+    //calls command schedule to run robot while in test mode
     CommandScheduler.getInstance().run();
   }
 

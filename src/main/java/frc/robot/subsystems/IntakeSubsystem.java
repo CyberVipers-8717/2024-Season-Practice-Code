@@ -16,16 +16,14 @@ public class IntakeSubsystem extends SubsystemBase {
     private final RelativeEncoder m_lowEncoder;
     private final RelativeEncoder m_highEncoder; 
 
-    public IntakeSubsystem() { //might want to add motor id parameter 
-        //temporary motor ids (change later)
+    public IntakeSubsystem() { 
         m_lowIntake = new CANSparkMax(IntakeConstants.kLowIntakeMotorPort, MotorType.kBrushless);
         m_highIntake = new CANSparkMax(IntakeConstants.kHighIntakeMotorPort, MotorType.kBrushless);
 
         m_lowEncoder = m_lowIntake.getEncoder(); 
         m_highEncoder = m_highIntake.getEncoder(); 
 
-        //have to test
-        m_highIntake.setInverted(false);
+        m_highIntake.setInverted(IntakeConstants.kHighIntakeInverted); //false
 
         m_lowIntake.setIdleMode(IdleMode.kBrake);
         m_highIntake.setIdleMode(IdleMode.kBrake);

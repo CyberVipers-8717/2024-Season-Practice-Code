@@ -10,13 +10,15 @@ public class RunUptake extends Command {
     private final Timer waitTimer = new Timer(); 
     private final Timer uptakeTimer = new Timer(); 
 
-    public RunUptake(UptakeSubsystem uptakeSubsystem) {//defaults to full speed
+    //defaults to full speed
+    public RunUptake(UptakeSubsystem uptakeSubsystem) {
         m_uptake = uptakeSubsystem;
         speed = 1;  
         addRequirements(m_uptake);
     }
 
-    public RunUptake(UptakeSubsystem uptakeSubsystem, double speed) { //allows variable speeds 
+    //allows variable speeds 
+    public RunUptake(UptakeSubsystem uptakeSubsystem, double speed) { 
         m_uptake = uptakeSubsystem; 
         this.speed = speed; 
         addRequirements(m_uptake);
@@ -36,18 +38,18 @@ public class RunUptake extends Command {
 
     @Override 
     public void end(boolean interrupted) {
-        uptakeTimer.reset(); 
+        uptakeTimer.reset();  
         waitTimer.reset();
         m_uptake.setMotor(0);
 
     }
 
     @Override 
-    public boolean isFinished() { //checks if voltage spikes and ends command only after a couple second delay
-        if(speed < 0 || speed == .26) { //rough work around to differentiate between flush mode and popping uptake  
+    public boolean isFinished() { //checks if current spikes and ends command only after a couple second delay
+        if(speed < 0 || speed == .26) { //rough work around to differentiate between flush mode and popping   
             return false; 
-        } else if (waitTimer.get() >= .5) { //waits half a second after initializing to ignore amp spikes on start up
-            if (m_uptake.getAmps() > 5 && uptakeTimer.get() == 0) { //temp voltage 
+        } else if (waitTimer.get() >= .5) { //waits half a second after initializing to ignore current spikes on start up (needs tuning)
+            if (m_uptake.getAmps() > 5 && uptakeTimer.get() == 0) { //current threshold might cahnge
                 uptakeTimer.start();
                 return false;
             } else if (m_uptake.getAmps() > 5 && uptakeTimer.get() >= .1) {

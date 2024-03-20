@@ -6,7 +6,6 @@ import com.revrobotics.SparkPIDController;
 import com.revrobotics.CANSparkBase.IdleMode;
 import com.revrobotics.CANSparkLowLevel.MotorType;
 
-import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.ShooterConstants;
 
@@ -17,9 +16,7 @@ public class ShooterSubsystem extends SubsystemBase {
     private final RelativeEncoder m_lowEncoder; 
     private final RelativeEncoder m_highEncoder; 
 
-    //private final PIDController
-
-    public ShooterSubsystem() { //add some PID stuff maybe??
+    public ShooterSubsystem() { 
         m_lowShooter = new CANSparkMax(ShooterConstants.kLowShooterMotorPort, MotorType.kBrushless); 
         m_highShooter = new CANSparkMax(ShooterConstants.kHighShooterMotorPort, MotorType.kBrushless); 
 
@@ -37,6 +34,8 @@ public class ShooterSubsystem extends SubsystemBase {
 
         m_lowShooter.burnFlash();
         m_highShooter.burnFlash(); 
+
+        zeroEncoders();
     }
 
     public void zeroEncoders() {

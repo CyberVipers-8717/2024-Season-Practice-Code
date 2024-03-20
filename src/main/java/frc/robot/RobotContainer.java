@@ -53,66 +53,70 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
  */
 public class RobotContainer {
 
-  // idk what this is for yet teehee
+  //Todo: Fix Ryan's shooter buttons, fix xwheel, ask mark what buttons he wants
+
+  //initializing all subsystems for robot
   private final DriveSubsystem m_robotDrive = new DriveSubsystem();
   private final IntakeSubsystem m_intake = new IntakeSubsystem();
   private final UptakeSubsystem m_uptake = new UptakeSubsystem();
   private final ShooterSubsystem m_shooter = new ShooterSubsystem();
   private final ClimbSubsystem m_climb = new ClimbSubsystem();
-  // private final LimelightSubsystem m_frontLimeLight = new
-  // LimelightSubsystem("front");
-  // private final LimelightSubsystem m_backLimeLight = new
-  // LimelightSubsystem("back");
+  // private final LimelightSubsystem m_frontLimeLight = new LimelightSubsystem("front");
+  // private final LimelightSubsystem m_backLimeLight = new LimelightSubsystem("back");
 
 
-  // controller thingy majiggy
+  //controllers for driver and manipulator
   Joystick m_driverController = new Joystick(OperatorConstants.kDriverControllerPort);
   Joystick m_manipulatorController = new Joystick(ManipulatorConstants.kManipulatorControllerPort);
 
-  // initialize subsystem thingys for pathplanner
-
-  // named commands thingy
+  //declaring auto dropdown
   private final SendableChooser<Command> autoChooser;
 
   public RobotContainer() {
+    //binds controller buttons to commands
     configureButtonBindings();
 
+    //enables use of dropdown for selecting autos
     autoChooser = AutoBuilder.buildAutoChooser(); // can change contructor for default auto
 
-    // named commands to make sure pathplanner auto thingy works
-
+    //binding commands to use with pathplanner
     NamedCommands.registerCommand("shooter", new AutoShooter(m_shooter, .45));
     NamedCommands.registerCommand("intake", new AutoIntake(m_intake, .5));
     NamedCommands.registerCommand("uptake", new AutoUptake(m_uptake, .25));
 
-    // default command thingy??? assuming it means this thing runs when nothing else
-    // runs
-    // create a drive command now
-    // tyler note: learn lambda or else ill do smth
+    // default command for drive subsystem
     m_robotDrive.setDefaultCommand(
-        new RunCommand( // this thing runs forever until forcibly stopped, idk what this is classified
-                        // as
+        new RunCommand( 
             () -> m_robotDrive.drive(
-                -clamp(m_driverController.getRawAxis(OperatorConstants.kLeftYAxisPort), .08)*DriveConstants.kMaxSpeedMetersPerSecond,
-                -clamp(m_driverController.getRawAxis(OperatorConstants.kLeftXAxisPort), .08)*DriveConstants.kMaxSpeedMetersPerSecond,
-                clamp(m_driverController.getRawAxis(OperatorConstants.kRightXAxisPort),.08)*DriveConstants.kMaxAngularSpeed),
+                squared(-clamp(m_driverController.getRawAxis(OperatorConstants.kLeftYAxisPort), .08))*DriveConstants.kMaxSpeedMetersPerSecond,
+                squared(-clamp(m_driverController.getRawAxis(OperatorConstants.kLeftXAxisPort), .08))*DriveConstants.kMaxSpeedMetersPerSecond,
+                squared((m_driverController.getRawAxis(OperatorConstants.kRightXAxisPort),.08))*DriveConstants.kMaxAngularSpeed),
             m_robotDrive));
 
-    if (RobotState.isTest()) { // checks if robot is in test mode to display subsystems on shuffleBoard
+    //displays subsystems on shuffleboard in Test mode
+    //can be used to tune PID controllers
+    if (RobotState.isTest()) { 
       SmartDashboard.putData(m_robotDrive);
-      SmartDashboard.putData(m_robotDrive.m_frontLeft);
-      // SmartDashboard.putData(m_robotDrive.m_frontRight);
-      // SmartDashboard.putData(m_robotDrive.m_rearLeft);
-      // SmartDashboard.putData(m_robotDrive.m_rearRight);
-      // SmartDashboard.putData(m_intake);
+      //inefficient might be able to make static pid controllers to tune all of them at once
+      SmartDashboard.putData(m_robotDrive.m_frontLeft.m_drivePID);
+      SmartDashboard.putData(m_robotDrive.m_frontRight.m_drivePID);
+      SmartDashboard.putData(m_robotDrive.m_rearLeft.m_drivePID);
+      SmartDashboard.putData(m_robotDrive.m_rearRight.m_drivePID);
+      SmartDashboard.putData(m_robotDrive.m_frontLeft.m_turnPID);
+      SmartDashboard.putData(m_robotDrive.m_frontRight.m_turnPID);
+      SmartDashboard.putData(m_robotDrive.m_rearLeft.m_turnPID);
+      SmartDashboard.putData(m_robotDrive.m_rearRight.m_turnPID);
+      //SmartDashboard.putData(m_intake);
       // SmartDashboard.putData(m_uptake);
       // SmartDashboard.putData(m_shooter);
       // SmartDashboard.putData(m_climb);
     }
+    
+    //displays the auto drop down on shuffleboard
     SmartDashboard.putData("Auto Chooser", autoChooser);
   }
 
-  // move this somewhere else
+  // clamp/deadband to deal with stick drift
   private double clamp(double value, double clamp) {
     if ((value <= clamp) && (value >= -clamp)) {
       return 0;
@@ -121,69 +125,63 @@ public class RobotContainer {
     }
   }
 
+  //simple square function to allow for smoother and more precise driving
+  //can modify this to better suit the drivers liking 
+  //note: for small values the square function makes the output signaticantly smaller 
+  //allowing for precise control at lower speeds but performance may suffer at higher speeds
+  private double squared(double value) {
+    if(value >= 0) {
+      return value*value; 
+    } else {
+      return -(value*value);
+    }
+  }
+
   private void configureButtonBindings() {
-    // driver controls
+    // driver controls for climb
     // Trigger driverLeftTrigger = new JoystickButton(m_driverController,
     // OperatorConstants.kDriverLeftTrigger);
     // Trigger driverRightTrigger = new JoystickButton(m_driverController,
     // OperatorConstants.kDriverRightTrigger);
+
+    //temporary bindings for testing gyro reset and xwheel
     Trigger driverAButton = new JoystickButton(m_driverController, OperatorConstants.kDriverAButton);
     Trigger driverXButton = new JoystickButton(m_driverController, OperatorConstants.kDriverXButton);
-    // //manipulator controls
+
+    //binding manipulator controls
     Trigger manipulatorBButton = new JoystickButton(m_manipulatorController, ManipulatorConstants.kManipulatorBButton);
     Trigger manipulatorAButton = new JoystickButton(m_manipulatorController, ManipulatorConstants.kManipulatorAButton);
     Trigger manipulatorXButton = new JoystickButton(m_manipulatorController, ManipulatorConstants.kManipulatorXButton);
-    // Trigger manipulatorYButton = new JoystickButton(m_manipulatorController,
-    // ManipulatorConstants.kManiputatorYButton);
+    // Trigger manipulatorYButton = new JoystickButton(m_manipulatorController, ManipulatorConstants.kManiputatorYButton);
+
     Trigger manipulatorLeftShoulder = new JoystickButton(m_manipulatorController, ManipulatorConstants.kManipulatorLeftShoulder);
     Trigger manipulatorRightShoulder = new JoystickButton(m_manipulatorController, ManipulatorConstants.kManipulatorRightShoulder);
     Trigger manipulatorLeftTrigger = new JoystickButton(m_manipulatorController, ManipulatorConstants.kManipulatorLeftTrigger);
     Trigger manipulatorRightTrigger = new JoystickButton(m_manipulatorController, ManipulatorConstants.kManipulatorRightTrigger);
 
-    manipulatorBButton.whileTrue(new RunShooter(m_shooter, .20)); //moves
-    // the shooter to low
-    manipulatorAButton.whileTrue(new RunShooter(m_shooter, .39)); //moves
-    // the shooter to mid
-    manipulatorXButton.whileTrue(new RunShooter(m_shooter, .65)); // moves
-    // the shooter to high
-    //manipulatorYButton.whileTrue(new RunShooter(m_shooter)); // moves
-    // the shooter to MAX (might remove)
-    manipulatorLeftShoulder.whileTrue(Commands.parallel(new RunIntake(m_intake,
-    -.25), new RunUptake(m_uptake, -.25), new RunShooter(m_shooter, -.5))); //Runs intake and uptake backwards
-    manipulatorRightShoulder.whileTrue(new RunUptake(m_uptake, .26)); // pops a note
-    // into shooter
-    manipulatorLeftTrigger.whileTrue(new RunShooter(m_shooter, .45)); // revs the //.65 speed for speaker //.20 speed for amp //.45 speed for trap
-    // shooter
-    manipulatorRightTrigger.whileTrue(Commands.parallel(new RunIntake(m_intake, .5), new RunUptake(m_uptake, .25))); // runs intake and shooter and stops after
-    // a note hits the uptake
+    manipulatorBButton.whileTrue(new RunShooter(m_shooter, .20)); //sets shooter mode to amp 
+    manipulatorAButton.whileTrue(new RunShooter(m_shooter, .39)); //sets the shooter mode to trap
+    manipulatorXButton.whileTrue(new RunShooter(m_shooter, .65)); // sets the shooter mode to speaker
+    //manipulatorYButton.whileTrue(new RunShooter(m_shooter)); // sets the shooter mode to max (might remove)
+
+    manipulatorLeftShoulder.whileTrue(Commands.parallel(new RunIntake(m_intake, -.25), new RunUptake(m_uptake, -.25), new RunShooter(m_shooter, -.5))); //Flushes everything backwards
+    manipulatorRightShoulder.whileTrue(new RunUptake(m_uptake, .26)); // pops a note into shooter
+    manipulatorLeftTrigger.whileTrue(new RunShooter(m_shooter, .45)); // revs the shooter //.65 speed for speaker //.20 speed for amp //.45 speed for trap 
+    manipulatorRightTrigger.whileTrue(Commands.parallel(new RunIntake(m_intake, .5), new RunUptake(m_uptake, .25))); // runs intake and shooter and stops aftera note hits the uptake
     
-   //manipulatorBButton.whileTrue(new RunClimb(m_climb, -.5));
-  //manipulatorAButton.whileTrue(new RunClimb(m_climb, .5));
-    
-    //ask mark 
+    //resets the forward direction of the gyro
+    //ask mark for what button he prefers
     driverAButton.onTrue(m_robotDrive.resetGyro());
-    driverXButton.onTrue(m_robotDrive.xWheels());
+
+    //currently only X's wheels while holding button because the default drive command overrides wheel orientation after release 
+    //check revlibs solution
+    driverXButton.whileTrue(m_robotDrive.xWheels());
 
   }
 
+  //retrieves command to be scheduled during auto 
   public Command getAutonomousCommand() {
-    // PathConstraints constraints = new PathConstraints(
-    // DriveConstants.kMaxSpeedMetersPerSecond,
-    // DriveConstants.kMaxAccelerationMetersPerSecond,
-    // DriveConstants.kMaxAngularSpeed, DriveConstants.kMaxAngularAcceleration
-    // );
-
-    // Command pathfindingCommand = AutoBuilder.pathfindThenFollowPath(
-    // path,
-    // constraints,
-    // 8717.0 //figure out later
-    // );
-
-    // return pathfindingCommand;
-    // ;
-
-    // return new PathPlannerAuto("Test");
-    //return autoChooser.getSelected();
+    //return autoChooser.getSelected(); //should retrieve the auto currently selected from the drop down
     return new PathPlannerAuto("Test Auto");
   }
 

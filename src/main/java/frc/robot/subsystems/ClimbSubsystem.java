@@ -34,6 +34,7 @@ public class ClimbSubsystem extends SubsystemBase{
         m_climb.set(speed);
     }
 
+    //gets the current position of the climb in rotations
     public double getPosition() {
         return m_climbEncoder.getPosition(); 
     }

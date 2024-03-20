@@ -16,6 +16,7 @@ public class UptakeSubsystem extends SubsystemBase {
 
     private final RelativeEncoder m_uptakeEncoder;
 
+    //initilazing pdh here because it's used nowhere else
     private final PowerDistribution m_pdh; 
 
 
@@ -35,6 +36,7 @@ public class UptakeSubsystem extends SubsystemBase {
         zeroEncoder(); 
     }
 
+    //gets the current reading from the the uptake 
     public double getAmps() {
         return m_pdh.getCurrent(6);
     }
@@ -43,6 +45,7 @@ public class UptakeSubsystem extends SubsystemBase {
         m_uptakeEncoder.setPosition(0);
     }
 
+    //makes the motor run at a certain speed
     public void setMotor(double speed) {
         m_uptakeMotor.set(speed);
     }
