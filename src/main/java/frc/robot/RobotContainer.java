@@ -18,7 +18,6 @@ import frc.robot.commands.RunUptake;
 import frc.robot.commands.RunClimb.ClimbHeight;
 import frc.robot.subsystems.ClimbSubsystem;
 import frc.robot.subsystems.DriveSubsystem;
-import frc.robot.subsystems.ExampleSubsystem;
 import frc.robot.subsystems.IntakeSubsystem;
 import frc.robot.subsystems.LimelightSubsystem;
 import frc.robot.subsystems.ShooterSubsystem;
@@ -90,7 +89,7 @@ public class RobotContainer {
             () -> m_robotDrive.drive(
                 squared(-clamp(m_driverController.getRawAxis(OperatorConstants.kLeftYAxisPort), .08))*DriveConstants.kMaxSpeedMetersPerSecond,
                 squared(-clamp(m_driverController.getRawAxis(OperatorConstants.kLeftXAxisPort), .08))*DriveConstants.kMaxSpeedMetersPerSecond,
-                squared((m_driverController.getRawAxis(OperatorConstants.kRightXAxisPort),.08))*DriveConstants.kMaxAngularSpeed),
+                squared(clamp(m_driverController.getRawAxis(OperatorConstants.kRightXAxisPort),.08))*DriveConstants.kMaxAngularSpeed),
             m_robotDrive));
 
     //displays subsystems on shuffleboard in Test mode
@@ -148,7 +147,20 @@ public class RobotContainer {
     Trigger driverAButton = new JoystickButton(m_driverController, OperatorConstants.kDriverAButton);
     Trigger driverXButton = new JoystickButton(m_driverController, OperatorConstants.kDriverXButton);
 
-    //binding manipulator controls
+    double shooterSpeed = .65; 
+
+    if (m_manipulatorController.getRawButtonPressed(ManipulatorConstants.kManipulatorBButton)) {
+      shooterSpeed = .20; 
+    }
+
+    if (m_manipulatorController.getRawButtonPressed(ManipulatorConstants.kManipulatorAButton)) {
+      shooterSpeed = .39; 
+    } 
+
+    if (m_manipulatorController.getRawButtonPressed(ManipulatorConstants.kManipulatorXButton)) {
+      shooterSpeed = .65; 
+    }
+
     Trigger manipulatorBButton = new JoystickButton(m_manipulatorController, ManipulatorConstants.kManipulatorBButton);
     Trigger manipulatorAButton = new JoystickButton(m_manipulatorController, ManipulatorConstants.kManipulatorAButton);
     Trigger manipulatorXButton = new JoystickButton(m_manipulatorController, ManipulatorConstants.kManipulatorXButton);
@@ -159,14 +171,9 @@ public class RobotContainer {
     Trigger manipulatorLeftTrigger = new JoystickButton(m_manipulatorController, ManipulatorConstants.kManipulatorLeftTrigger);
     Trigger manipulatorRightTrigger = new JoystickButton(m_manipulatorController, ManipulatorConstants.kManipulatorRightTrigger);
 
-    manipulatorBButton.whileTrue(new RunShooter(m_shooter, .20)); //sets shooter mode to amp 
-    manipulatorAButton.whileTrue(new RunShooter(m_shooter, .39)); //sets the shooter mode to trap
-    manipulatorXButton.whileTrue(new RunShooter(m_shooter, .65)); // sets the shooter mode to speaker
-    //manipulatorYButton.whileTrue(new RunShooter(m_shooter)); // sets the shooter mode to max (might remove)
-
     manipulatorLeftShoulder.whileTrue(Commands.parallel(new RunIntake(m_intake, -.25), new RunUptake(m_uptake, -.25), new RunShooter(m_shooter, -.5))); //Flushes everything backwards
     manipulatorRightShoulder.whileTrue(new RunUptake(m_uptake, .26)); // pops a note into shooter
-    manipulatorLeftTrigger.whileTrue(new RunShooter(m_shooter, .45)); // revs the shooter //.65 speed for speaker //.20 speed for amp //.45 speed for trap 
+    manipulatorLeftTrigger.whileTrue(new RunShooter(m_shooter, shooterSpeed)); // revs the shooter //.65 speed for speaker //.20 speed for amp //.45 speed for trap 
     manipulatorRightTrigger.whileTrue(Commands.parallel(new RunIntake(m_intake, .5), new RunUptake(m_uptake, .25))); // runs intake and shooter and stops aftera note hits the uptake
     
     //resets the forward direction of the gyro
@@ -176,7 +183,6 @@ public class RobotContainer {
     //currently only X's wheels while holding button because the default drive command overrides wheel orientation after release 
     //check revlibs solution
     driverXButton.whileTrue(m_robotDrive.xWheels());
-
   }
 
   //retrieves command to be scheduled during auto 

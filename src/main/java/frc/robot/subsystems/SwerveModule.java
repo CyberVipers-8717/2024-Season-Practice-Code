@@ -147,7 +147,7 @@ public class SwerveModule{
     SwerveModuleState optimizedDesiredState = SwerveModuleState.optimize(correctedDesiredState, Rotation2d.fromRadians(m_turnEncoder.getPosition()));
 
     //new (scales down movement perpendicular to the desired direction of travel that can occur when modules change directions)
-    optimizedDesiredState.speedMetersPerSecond *= optimizedDesiredState.angle.minus(Rotation2d.fromRadians(m_turnEncoder.getPosition)).getCos();
+    optimizedDesiredState.speedMetersPerSecond *= optimizedDesiredState.angle.minus(Rotation2d.fromRadians(m_turnEncoder.getPosition())).getCos();
 
     // tells the robot which states we want.
     // m_drivePID.setReference(optimizedDesiredState.speedMetersPerSecond, CANSparkMax.ControlType.kVelocity);

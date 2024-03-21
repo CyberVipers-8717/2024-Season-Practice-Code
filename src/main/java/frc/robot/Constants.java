@@ -101,7 +101,7 @@ public final class Constants {
     public static final double kTurnEncoderVelocityFactor = (2 * Math.PI) / 60.0; // radians per second
 
 
-    // public static final boolean kTurnEncoderInverted = true;
+    public static final boolean kTurnEncoderInverted = true;
     // public static final boolean kTurnEncoderWrapping = true;
 
     // public static final double kTurnEncoderPositionPIDMinInput = 0; 
