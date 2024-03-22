@@ -6,7 +6,6 @@ package frc.robot;
 
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
-import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.TimedRobot;
 
@@ -102,26 +101,26 @@ public final class Constants {
 
 
     public static final boolean kTurnEncoderInverted = true;
-    // public static final boolean kTurnEncoderWrapping = true;
+    public static final boolean kTurnEncoderWrapping = true;
 
-    // public static final double kTurnEncoderPositionPIDMinInput = 0; 
-    // public static final double kTurnEncoderPositionPIDMaxInput = 2 * Math.PI; 
+    public static final double kTurnEncoderPositionPIDMinInput = 0; 
+    public static final double kTurnEncoderPositionPIDMaxInput = 2 * Math.PI; 
 
     //gains for drive motor PID (test and change)
-    public static final double kDriveP = 1; //0.04 (value for rev pid)
-    // public static final double kDriveI = 0; 
-    // public static final double kDriveD = 0; 
-    // public static final double kDriveFF = 1 / kDriveWheelFreeSpeedRps; 
-    // public static final double kDriveMinOutput = -1; 
-    // public static final double kDriveMaxOutout = 1; 
+    public static final double kDriveP = .04; //0.04 (value for rev pid)
+    public static final double kDriveI = 0; 
+    public static final double kDriveD = 0; 
+    public static final double kDriveFF = 1 / kDriveWheelFreeSpeedRps; 
+    public static final double kDriveMinOutput = -1; 
+    public static final double kDriveMaxOutout = 1; 
 
     //gains for turn motor PID (test and change)
     public static final double kTurnP = 1; //same value for rev pid
-    // public static final double kTurnI = 0;
-    // public static final double kTurnD = 0;
-    // public static final double kTurnFF = 0;
-    // public static final double kTurnMinOutput = -1;
-    // public static final double kTurnMaxOutput = 1;
+    public static final double kTurnI = 0;
+    public static final double kTurnD = 0;
+    public static final double kTurnFF = 0;
+    public static final double kTurnMinOutput = -1;
+    public static final double kTurnMaxOutput = 1;
 
     //current limits for swerve motors
     public static final int kDriveCurrentLimit = 50;

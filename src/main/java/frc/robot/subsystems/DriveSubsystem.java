@@ -96,9 +96,12 @@ public class DriveSubsystem extends SubsystemBase {
 
   //auto drive method for path following 
   public void autoDrive(ChassisSpeeds speeds) {
-    speeds.vxMetersPerSecond = 1; //positive is backward 
-    speeds.vyMetersPerSecond = 0; //experiment with these values to confirm if path planner is generating right speeds
-    speeds.omegaRadiansPerSecond = 0; 
+    // speeds.vxMetersPerSecond = -speeds.vxMetersPerSecond; //positive is backward //negative is forward
+    // speeds.vyMetersPerSecond = -speeds.vyMetersPerSecond; //positive is right //negative is left
+    // speeds.omegaRadiansPerSecond = -speeds.omegaRadiansPerSecond; //positive is clockwise //negative is ccw
+    speeds.vxMetersPerSecond = 0; 
+    speeds.vyMetersPerSecond = 0; 
+    speeds.omegaRadiansPerSecond = Math.PI; 
     System.out.println("Speeds: " + speeds.vxMetersPerSecond + " " + speeds.vyMetersPerSecond + " " + speeds.omegaRadiansPerSecond); //testing remove later
     var swerveModuleStates = DriveConstants.kDriveKinematics.toSwerveModuleStates(ChassisSpeeds.discretize(
     speeds, DriveConstants.kDriverPeriod
@@ -223,7 +226,7 @@ public class DriveSubsystem extends SubsystemBase {
     //updates data on advantagescope
     publisher.set(getStates()); 
     //updates the swerve odometry every clock cycle
-    m_driveOdometry.update(m_gyro.getRotation2d().unaryMinus(), getPositions());
+    updateOdometry();
   }
 
   @Override
@@ -241,4 +244,8 @@ public class DriveSubsystem extends SubsystemBase {
     return new RunCommand(() -> {m_frontLeft.setDesiredState(new SwerveModuleState(0, new Rotation2d(Math.PI/4))); m_frontRight.setDesiredState(new SwerveModuleState(0, new Rotation2d(-Math.PI/4))); m_rearLeft.setDesiredState(new SwerveModuleState(0, new Rotation2d(-Math.PI/4))); m_rearRight.setDesiredState(new SwerveModuleState(0, new Rotation2d(Math.PI/4)));}, this);
   }
 
+  public void updateOdometry() {
+    System.out.println("FrontLeft: " + m_frontLeft.getRealPosition());
+    m_driveOdometry.update(m_gyro.getRotation2d().unaryMinus(), getPositions());
+  }
 }

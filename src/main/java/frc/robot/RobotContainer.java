@@ -97,15 +97,15 @@ public class RobotContainer {
     if (RobotState.isTest()) { 
       SmartDashboard.putData(m_robotDrive);
       //inefficient might be able to make static pid controllers to tune all of them at once
-      SmartDashboard.putData(m_robotDrive.m_frontLeft.m_drivePID);
-      SmartDashboard.putData(m_robotDrive.m_frontRight.m_drivePID);
-      SmartDashboard.putData(m_robotDrive.m_rearLeft.m_drivePID);
-      SmartDashboard.putData(m_robotDrive.m_rearRight.m_drivePID);
-      SmartDashboard.putData(m_robotDrive.m_frontLeft.m_turnPID);
-      SmartDashboard.putData(m_robotDrive.m_frontRight.m_turnPID);
-      SmartDashboard.putData(m_robotDrive.m_rearLeft.m_turnPID);
-      SmartDashboard.putData(m_robotDrive.m_rearRight.m_turnPID);
-      //SmartDashboard.putData(m_intake);
+      // SmartDashboard.putData(m_robotDrive.m_frontLeft.m_drivePID);
+      // SmartDashboard.putData(m_robotDrive.m_frontRight.m_drivePID);
+      // SmartDashboard.putData(m_robotDrive.m_rearLeft.m_drivePID);
+      // SmartDashboard.putData(m_robotDrive.m_rearRight.m_drivePID);
+      // SmartDashboard.putData(m_robotDrive.m_frontLeft.m_turnPID);
+      // SmartDashboard.putData(m_robotDrive.m_frontRight.m_turnPID);
+      // SmartDashboard.putData(m_robotDrive.m_rearLeft.m_turnPID);
+      // SmartDashboard.putData(m_robotDrive.m_rearRight.m_turnPID);
+      // SmartDashboard.putData(m_intake);
       // SmartDashboard.putData(m_uptake);
       // SmartDashboard.putData(m_shooter);
       // SmartDashboard.putData(m_climb);
@@ -161,9 +161,9 @@ public class RobotContainer {
       shooterSpeed = .65; 
     }
 
-    Trigger manipulatorBButton = new JoystickButton(m_manipulatorController, ManipulatorConstants.kManipulatorBButton);
-    Trigger manipulatorAButton = new JoystickButton(m_manipulatorController, ManipulatorConstants.kManipulatorAButton);
-    Trigger manipulatorXButton = new JoystickButton(m_manipulatorController, ManipulatorConstants.kManipulatorXButton);
+    // Trigger manipulatorBButton = new JoystickButton(m_manipulatorController, ManipulatorConstants.kManipulatorBButton);
+    // Trigger manipulatorAButton = new JoystickButton(m_manipulatorController, ManipulatorConstants.kManipulatorAButton);
+    // Trigger manipulatorXButton = new JoystickButton(m_manipulatorController, ManipulatorConstants.kManipulatorXButton);
     // Trigger manipulatorYButton = new JoystickButton(m_manipulatorController, ManipulatorConstants.kManiputatorYButton);
 
     Trigger manipulatorLeftShoulder = new JoystickButton(m_manipulatorController, ManipulatorConstants.kManipulatorLeftShoulder);
