@@ -117,9 +117,10 @@ public class SwerveModule{
       new Rotation2d(m_turnEncoder.getPosition() - m_chassisAngularOffset)); 
   }
 
+  //gets the position of the swerve module inverted for auto
   public SwerveModulePosition getRealPosition() {
-    return new SwerveModulePosition(-m_driveEncoder.getPosition(), //gets right distance
-      new Rotation2d(m_turnEncoder.getPosition() - m_chassisAngularOffset)); //gets right angle (I think)
+    return new SwerveModulePosition(-m_driveEncoder.getPosition(), //gets inverted/right distance 
+      new Rotation2d(m_turnEncoder.getPosition() - m_chassisAngularOffset)); //gets the right angle (I think)
   }
 
   //Returns the current velocity and angle of the module

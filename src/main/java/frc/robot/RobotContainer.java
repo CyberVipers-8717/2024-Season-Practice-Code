@@ -87,9 +87,9 @@ public class RobotContainer {
     m_robotDrive.setDefaultCommand(
         new RunCommand( 
             () -> m_robotDrive.drive(
-                squared(-clamp(m_driverController.getRawAxis(OperatorConstants.kLeftYAxisPort), .08))*DriveConstants.kMaxSpeedMetersPerSecond,
-                squared(-clamp(m_driverController.getRawAxis(OperatorConstants.kLeftXAxisPort), .08))*DriveConstants.kMaxSpeedMetersPerSecond,
-                squared(clamp(m_driverController.getRawAxis(OperatorConstants.kRightXAxisPort),.08))*DriveConstants.kMaxAngularSpeed),
+                squared(-MathUtil.applydeadband(m_driverController.getRawAxis(OperatorConstants.kLeftYAxisPort), .08))*DriveConstants.kMaxSpeedMetersPerSecond,
+                squared(-MathUtil.applydeadband(m_driverController.getRawAxis(OperatorConstants.kLeftXAxisPort), .08))*DriveConstants.kMaxSpeedMetersPerSecond,
+                squared(MathUtil.applydeadband(m_driverController.getRawAxis(OperatorConstants.kRightXAxisPort),.08))*DriveConstants.kMaxAngularSpeed),
             m_robotDrive));
 
     //displays subsystems on shuffleboard in Test mode
@@ -113,15 +113,6 @@ public class RobotContainer {
     
     //displays the auto drop down on shuffleboard
     SmartDashboard.putData("Auto Chooser", autoChooser);
-  }
-
-  // clamp/deadband to deal with stick drift
-  private double clamp(double value, double clamp) {
-    if ((value <= clamp) && (value >= -clamp)) {
-      return 0;
-    } else {
-      return value;
-    }
   }
 
   //simple square function to allow for smoother and more precise driving

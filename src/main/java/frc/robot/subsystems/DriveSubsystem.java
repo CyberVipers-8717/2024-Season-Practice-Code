@@ -73,7 +73,7 @@ public class DriveSubsystem extends SubsystemBase {
   private final ADXRS450_Gyro m_gyro = new ADXRS450_Gyro();
 
   //odometry object to track the robots pose on the field
-  private final SwerveDriveOdometry m_driveOdometry = new SwerveDriveOdometry(DriveConstants.kDriveKinematics, m_gyro.getRotation2d().unaryMinus(), m_swervePositions);
+  private final SwerveDriveOdometry m_driveOdometry = new SwerveDriveOdometry(DriveConstants.kDriveKinematics, m_gyro.getRotation2d(), m_swervePositions); 
 
   //serializes and publishes data for visualization using advantagescope 
   private final StructArrayPublisher<SwerveModuleState> publisher = NetworkTableInstance.getDefault().getStructArrayTopic("MyStates", SwerveModuleState.struct).publish();
@@ -96,6 +96,7 @@ public class DriveSubsystem extends SubsystemBase {
 
   //auto drive method for path following 
   public void autoDrive(ChassisSpeeds speeds) {
+    // (new) check to see if that fixed the chassis speeds w/o inverting 
     // speeds.vxMetersPerSecond = -speeds.vxMetersPerSecond; //positive is backward //negative is forward
     // speeds.vyMetersPerSecond = -speeds.vyMetersPerSecond; //positive is right //negative is left
     // speeds.omegaRadiansPerSecond = -speeds.omegaRadiansPerSecond; //positive is clockwise //negative is ccw
@@ -106,11 +107,6 @@ public class DriveSubsystem extends SubsystemBase {
     var swerveModuleStates = DriveConstants.kDriveKinematics.toSwerveModuleStates(ChassisSpeeds.discretize(
     speeds, DriveConstants.kDriverPeriod
     ));
-
-    // System.out.println("FrontLeft Pre Speed: " + swerveModuleStates[0].speedMetersPerSecond);
-    // System.out.println("FrontRight Pre Speed: " + swerveModuleStates[1].speedMetersPerSecond);
-    // System.out.println("RearLeft Pre Speed: " + swerveModuleStates[2].speedMetersPerSecond);
-    // System.out.println("RearRight Pre Speed: " + swerveModuleStates[3].speedMetersPerSecond);
     
     SwerveDriveKinematics.desaturateWheelSpeeds(swerveModuleStates, DriveConstants.kMaxSpeedMetersPerSecond);
 
@@ -119,11 +115,6 @@ public class DriveSubsystem extends SubsystemBase {
     m_rearLeft.setDesiredState(swerveModuleStates[2]);
     m_rearRight.setDesiredState(swerveModuleStates[3]);
 
-    // System.out.println("FrontLeft: " + m_frontLeft.getState().speedMetersPerSecond);
-    // System.out.println("FrontRight: " + m_frontRight.getState().speedMetersPerSecond);
-    // System.out.println("RearLeft: " + m_rearLeft.getState().speedMetersPerSecond);
-    // System.out.println("RearRight: " + m_rearRight.getState().speedMetersPerSecond);
-  
   }
   
   //Generates field-centric chassis speeds
@@ -192,15 +183,13 @@ public class DriveSubsystem extends SubsystemBase {
     return new double[] {0,0};
   }
 
-  //should work (maybe)?
-  //might need to modify pose to account for flipped chassis speeds
   public Pose2d getPose(){
     return m_driveOdometry.getPoseMeters();
   }
   
   //resets the pose of the odometry to the pose supplied 
   public void resetPose(Pose2d pose){
-    m_driveOdometry.resetPosition(m_gyro.getRotation2d().unaryMinus(), getPositions(), pose);
+    m_driveOdometry.resetPosition(m_gyro.getRotation2d(), getPositions(), pose);
   }
 
   //gets the current positions of the swerve modules 
@@ -245,7 +234,8 @@ public class DriveSubsystem extends SubsystemBase {
   }
 
   public void updateOdometry() {
+    //testing to see if odometry reading needs to be inverted 
     System.out.println("FrontLeft: " + m_frontLeft.getRealPosition());
-    m_driveOdometry.update(m_gyro.getRotation2d().unaryMinus(), getPositions());
+    m_driveOdometry.update(m_gyro.getRotation2d(), getPositions()); 
   }
 }
