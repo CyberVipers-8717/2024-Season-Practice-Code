@@ -28,10 +28,13 @@ import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.commands.PathPlannerAuto;
 import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.path.PathPlannerPath;
+
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.RobotState;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
+import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -69,7 +72,7 @@ public class RobotContainer {
   Joystick m_manipulatorController = new Joystick(ManipulatorConstants.kManipulatorControllerPort);
 
   //declaring auto dropdown
-  private final SendableChooser<Command> autoChooser;
+  private final SendableChooser<Command> autoChooser; 
 
   public RobotContainer() {
     //binds controller buttons to commands
@@ -80,39 +83,28 @@ public class RobotContainer {
 
     //binding commands to use with pathplanner
     NamedCommands.registerCommand("shooter", new AutoShooter(m_shooter, .45));
-    NamedCommands.registerCommand("intake", new AutoIntake(m_intake, .5));
+    NamedCommands.registerCommand("intake", new AutoIntake(m_intake, .6));
     NamedCommands.registerCommand("uptake", new AutoUptake(m_uptake, .25));
 
     // default command for drive subsystem
     m_robotDrive.setDefaultCommand(
         new RunCommand( 
             () -> m_robotDrive.drive(
-                squared(-MathUtil.applydeadband(m_driverController.getRawAxis(OperatorConstants.kLeftYAxisPort), .08))*DriveConstants.kMaxSpeedMetersPerSecond,
-                squared(-MathUtil.applydeadband(m_driverController.getRawAxis(OperatorConstants.kLeftXAxisPort), .08))*DriveConstants.kMaxSpeedMetersPerSecond,
-                squared(MathUtil.applydeadband(m_driverController.getRawAxis(OperatorConstants.kRightXAxisPort),.08))*DriveConstants.kMaxAngularSpeed),
+                squared(MathUtil.applyDeadband(m_driverController.getRawAxis(OperatorConstants.kLeftYAxisPort), .08))*DriveConstants.kMaxSpeedMetersPerSecond, //-
+                squared(MathUtil.applyDeadband(m_driverController.getRawAxis(OperatorConstants.kLeftXAxisPort), .08))*DriveConstants.kMaxSpeedMetersPerSecond, //- for ours
+                squared(MathUtil.applyDeadband(m_driverController.getRawAxis(OperatorConstants.kRightXAxisPort),.08))*DriveConstants.kMaxAngularSpeed), 
             m_robotDrive));
 
     //displays subsystems on shuffleboard in Test mode
     //can be used to tune PID controllers
     if (RobotState.isTest()) { 
       SmartDashboard.putData(m_robotDrive);
-      //inefficient might be able to make static pid controllers to tune all of them at once
-      // SmartDashboard.putData(m_robotDrive.m_frontLeft.m_drivePID);
-      // SmartDashboard.putData(m_robotDrive.m_frontRight.m_drivePID);
-      // SmartDashboard.putData(m_robotDrive.m_rearLeft.m_drivePID);
-      // SmartDashboard.putData(m_robotDrive.m_rearRight.m_drivePID);
-      // SmartDashboard.putData(m_robotDrive.m_frontLeft.m_turnPID);
-      // SmartDashboard.putData(m_robotDrive.m_frontRight.m_turnPID);
-      // SmartDashboard.putData(m_robotDrive.m_rearLeft.m_turnPID);
-      // SmartDashboard.putData(m_robotDrive.m_rearRight.m_turnPID);
-      // SmartDashboard.putData(m_intake);
-      // SmartDashboard.putData(m_uptake);
-      // SmartDashboard.putData(m_shooter);
-      // SmartDashboard.putData(m_climb);
     }
     
     //displays the auto drop down on shuffleboard
     SmartDashboard.putData("Auto Chooser", autoChooser);
+    SmartDashboard.putData(m_robotDrive.field);
+    SmartDashboard.putData(m_robotDrive.m_gyro);
   }
 
   //simple square function to allow for smoother and more precise driving
@@ -129,47 +121,34 @@ public class RobotContainer {
 
   private void configureButtonBindings() {
     // driver controls for climb
-    // Trigger driverLeftTrigger = new JoystickButton(m_driverController,
-    // OperatorConstants.kDriverLeftTrigger);
-    // Trigger driverRightTrigger = new JoystickButton(m_driverController,
-    // OperatorConstants.kDriverRightTrigger);
+    Trigger driverLeftShoulder = new JoystickButton(m_driverController, OperatorConstants.kDriverLeftShoulder);
+    Trigger driverRightShoulder = new JoystickButton(m_driverController, OperatorConstants.kDriverRightShoulder);
 
     //temporary bindings for testing gyro reset and xwheel
-    Trigger driverAButton = new JoystickButton(m_driverController, OperatorConstants.kDriverAButton);
+    Trigger driverBButton = new JoystickButton(m_driverController, OperatorConstants.kDriverBButton);
     Trigger driverXButton = new JoystickButton(m_driverController, OperatorConstants.kDriverXButton);
-
-    double shooterSpeed = .65; 
-
-    if (m_manipulatorController.getRawButtonPressed(ManipulatorConstants.kManipulatorBButton)) {
-      shooterSpeed = .20; 
-    }
-
-    if (m_manipulatorController.getRawButtonPressed(ManipulatorConstants.kManipulatorAButton)) {
-      shooterSpeed = .39; 
-    } 
-
-    if (m_manipulatorController.getRawButtonPressed(ManipulatorConstants.kManipulatorXButton)) {
-      shooterSpeed = .65; 
-    }
-
-    // Trigger manipulatorBButton = new JoystickButton(m_manipulatorController, ManipulatorConstants.kManipulatorBButton);
-    // Trigger manipulatorAButton = new JoystickButton(m_manipulatorController, ManipulatorConstants.kManipulatorAButton);
-    // Trigger manipulatorXButton = new JoystickButton(m_manipulatorController, ManipulatorConstants.kManipulatorXButton);
-    // Trigger manipulatorYButton = new JoystickButton(m_manipulatorController, ManipulatorConstants.kManiputatorYButton);
 
     Trigger manipulatorLeftShoulder = new JoystickButton(m_manipulatorController, ManipulatorConstants.kManipulatorLeftShoulder);
     Trigger manipulatorRightShoulder = new JoystickButton(m_manipulatorController, ManipulatorConstants.kManipulatorRightShoulder);
-    Trigger manipulatorLeftTrigger = new JoystickButton(m_manipulatorController, ManipulatorConstants.kManipulatorLeftTrigger);
+    //Trigger manipulatorLeftTrigger = new JoystickButton(m_manipulatorController, ManipulatorConstants.kManipulatorLeftTrigger);
     Trigger manipulatorRightTrigger = new JoystickButton(m_manipulatorController, ManipulatorConstants.kManipulatorRightTrigger);
+    Trigger manipulatorBButton = new JoystickButton(m_manipulatorController, ManipulatorConstants.kManipulatorBButton);
+    Trigger manipulatorAButton = new JoystickButton(m_manipulatorController, ManipulatorConstants.kManipulatorAButton);
+    Trigger manipulatorXButton = new JoystickButton(m_manipulatorController, ManipulatorConstants.kManipulatorXButton);
 
     manipulatorLeftShoulder.whileTrue(Commands.parallel(new RunIntake(m_intake, -.25), new RunUptake(m_uptake, -.25), new RunShooter(m_shooter, -.5))); //Flushes everything backwards
     manipulatorRightShoulder.whileTrue(new RunUptake(m_uptake, .26)); // pops a note into shooter
-    manipulatorLeftTrigger.whileTrue(new RunShooter(m_shooter, shooterSpeed)); // revs the shooter //.65 speed for speaker //.20 speed for amp //.45 speed for trap 
+   // manipulatorLeftTrigger.whileTrue(new RunShooter(m_shooter, .65)); // revs the shooter //.65 speed for speaker //.20 speed for amp //.45 speed for trap 
     manipulatorRightTrigger.whileTrue(Commands.parallel(new RunIntake(m_intake, .5), new RunUptake(m_uptake, .25))); // runs intake and shooter and stops aftera note hits the uptake
-    
+    manipulatorBButton.whileTrue(new RunShooter(m_shooter, .16));
+    manipulatorAButton.whileTrue(new RunShooter(m_shooter, .35));
+    manipulatorXButton.whileTrue(new RunShooter(m_shooter, .65));
+
+    driverLeftShoulder.whileTrue(new RunClimb(m_climb, 1)); 
+    driverRightShoulder.whileTrue(new RunClimb(m_climb, -1)); 
     //resets the forward direction of the gyro
     //ask mark for what button he prefers
-    driverAButton.onTrue(m_robotDrive.resetGyro());
+    driverBButton.onTrue(m_robotDrive.resetGyro());
 
     //currently only X's wheels while holding button because the default drive command overrides wheel orientation after release 
     //check revlibs solution

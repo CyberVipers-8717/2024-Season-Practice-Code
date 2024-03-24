@@ -19,8 +19,8 @@ import edu.wpi.first.wpilibj.TimedRobot;
  */
 public final class Constants {
   public static class DriveConstants { 
-    public static final double kMaxSpeedMetersPerSecond = 4.8;
-    public static final double kMaxAccelerationMetersPerSecond = 4.8; //theoretical max
+    public static final double kMaxSpeedMetersPerSecond = 4.3;
+    public static final double kMaxAccelerationMetersPerSecond = 4.3; //theoretical max
     public static final double kMaxAngularSpeed = 2 * Math.PI; //radians per sec 
     public static final double kMaxAngularAcceleration = 2 * Math.PI; // radians per second per second
     //distance from center of left wheel to right wheel
@@ -123,7 +123,7 @@ public final class Constants {
     public static final double kTurnMaxOutput = 1;
 
     //current limits for swerve motors
-    public static final int kDriveCurrentLimit = 50;
+    public static final int kDriveCurrentLimit = 40;
     public static final int kTurnCurrentLimit = 20;
 
   }
@@ -133,26 +133,26 @@ public final class Constants {
     public static final int kLowIntakeMotorPort = 16; 
     public static final int kHighIntakeMotorPort = 6; 
     //current limit for intake motors
-    public static final int kIntakeCurrentLimit = 50; 
+    public static final int kIntakeCurrentLimit = 40; 
     public static final boolean kHighIntakeInverted = false; 
   }
 
   public static class UptakeConstants {
     //motor ports and current limit for uptake
     public static final int kUptakeMotorPort = 9;
-    public static final int kUptakeCurrentLimit = 50; 
+    public static final int kUptakeCurrentLimit = 40; 
   }
 
   public static class ShooterConstants {
     //motor ports and current limit for shooter
     public static final int kLowShooterMotorPort = 10; 
     public static final int kHighShooterMotorPort = 13;
-    public static final int kShooterMotorCurrentLimit = 50; 
+    public static final int kShooterMotorCurrentLimit = 40; 
   }
   
   public static class ClimbConstants {
     //motor port and current limit for climb
     public static final int kClimbMotorPort = 2; 
-    public static final int kClimbMotorCurrentLimit = 50; 
+    public static final int kClimbMotorCurrentLimit = 40; 
   }
 }

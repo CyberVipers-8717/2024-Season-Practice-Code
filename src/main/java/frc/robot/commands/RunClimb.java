@@ -69,6 +69,7 @@ public class RunClimb extends Command {
 
     @Override 
     public void execute() {
+        System.out.println(m_climb.getPosition()); 
         m_climb.setMotor(speed);
     }
 
@@ -79,13 +80,13 @@ public class RunClimb extends Command {
 
     @Override 
     public boolean isFinished() { 
-        if(height == ClimbHeight.NULL) { //checks to see if using direct input 
-            return false; 
-        } else if (m_climb.getPosition() >= encoderPosition) {
-            return true; 
-        } else {
-            return false; 
-        }
+       if(m_climb.getPosition() <= 0) {
+        return true; 
+       } else if(m_climb.getPosition() >= 120) {
+        return true; 
+       } else {
+        return false; 
+       }
     }
     
 }

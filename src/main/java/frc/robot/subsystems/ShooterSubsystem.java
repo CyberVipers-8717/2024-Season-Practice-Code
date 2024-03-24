@@ -22,8 +22,8 @@ public class ShooterSubsystem extends SubsystemBase {
         m_lowEncoder = m_lowShooter.getEncoder(); 
         m_highEncoder = m_highShooter.getEncoder();
 
-        m_lowShooter.setIdleMode(IdleMode.kBrake); 
-        m_highShooter.setIdleMode(IdleMode.kBrake);
+        m_lowShooter.setIdleMode(IdleMode.kCoast); 
+        m_highShooter.setIdleMode(IdleMode.kCoast);
 
         m_lowShooter.setSmartCurrentLimit(ShooterConstants.kShooterMotorCurrentLimit);
         m_highShooter.setSmartCurrentLimit(ShooterConstants.kShooterMotorCurrentLimit); 

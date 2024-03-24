@@ -32,7 +32,6 @@ public class RunUptake extends Command {
 
     @Override 
     public void execute() {
-        System.out.println(m_uptake.getAmps());
         m_uptake.setMotor(speed);
     }
 

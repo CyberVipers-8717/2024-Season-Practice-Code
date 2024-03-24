@@ -21,6 +21,7 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructArrayPublisher;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
@@ -70,19 +71,21 @@ public class DriveSubsystem extends SubsystemBase {
   private final SwerveModulePosition[] m_swervePositions = getPositions();
   
   //gyro to find robot's heading/angle 
-  private final ADXRS450_Gyro m_gyro = new ADXRS450_Gyro();
+  public final ADXRS450_Gyro m_gyro = new ADXRS450_Gyro();
 
   //odometry object to track the robots pose on the field
   private final SwerveDriveOdometry m_driveOdometry = new SwerveDriveOdometry(DriveConstants.kDriveKinematics, m_gyro.getRotation2d(), m_swervePositions); 
 
+
   //serializes and publishes data for visualization using advantagescope 
   private final StructArrayPublisher<SwerveModuleState> publisher = NetworkTableInstance.getDefault().getStructArrayTopic("MyStates", SwerveModuleState.struct).publish();
+  public final Field2d field = new Field2d();
 
   //default drive method that converts controller input into field centric robot movement
   public void drive(double xSpeed, double ySpeed, double arr){
     //generates array of swerve module states from controller input
     var swerveModuleStates = DriveConstants.kDriveKinematics.toSwerveModuleStates(ChassisSpeeds.discretize(
-      tofieldRelative(xSpeed, ySpeed, arr), DriveConstants.kDriverPeriod));
+      ChassisSpeeds.fromFieldRelativeSpeeds(xSpeed, ySpeed, arr, m_gyro.getRotation2d()), DriveConstants.kDriverPeriod));
 
     //caps wheel speeds to ensure they don't go faster than they're allowed to 
     SwerveDriveKinematics.desaturateWheelSpeeds(swerveModuleStates, DriveConstants.kMaxSpeedMetersPerSecond);
@@ -97,12 +100,12 @@ public class DriveSubsystem extends SubsystemBase {
   //auto drive method for path following 
   public void autoDrive(ChassisSpeeds speeds) {
     // (new) check to see if that fixed the chassis speeds w/o inverting 
-    // speeds.vxMetersPerSecond = -speeds.vxMetersPerSecond; //positive is backward //negative is forward
-    // speeds.vyMetersPerSecond = -speeds.vyMetersPerSecond; //positive is right //negative is left
-    // speeds.omegaRadiansPerSecond = -speeds.omegaRadiansPerSecond; //positive is clockwise //negative is ccw
-    speeds.vxMetersPerSecond = 0; 
-    speeds.vyMetersPerSecond = 0; 
-    speeds.omegaRadiansPerSecond = Math.PI; 
+    speeds.vxMetersPerSecond = -speeds.vxMetersPerSecond; //positive is backward //negative is forward
+    speeds.vyMetersPerSecond = -speeds.vyMetersPerSecond; //positive is right //negative is left
+    speeds.omegaRadiansPerSecond = -speeds.omegaRadiansPerSecond; //positive is clockwise //negative is ccw
+    //speeds.vxMetersPerSecond = -1; 
+    // speeds.vyMetersPerSecond = 0; 
+    // speeds.omegaRadiansPerSecond = 0; 
     System.out.println("Speeds: " + speeds.vxMetersPerSecond + " " + speeds.vyMetersPerSecond + " " + speeds.omegaRadiansPerSecond); //testing remove later
     var swerveModuleStates = DriveConstants.kDriveKinematics.toSwerveModuleStates(ChassisSpeeds.discretize(
     speeds, DriveConstants.kDriverPeriod
@@ -216,6 +219,7 @@ public class DriveSubsystem extends SubsystemBase {
     publisher.set(getStates()); 
     //updates the swerve odometry every clock cycle
     updateOdometry();
+    field.setRobotPose(getPose());
   }
 
   @Override
@@ -235,7 +239,7 @@ public class DriveSubsystem extends SubsystemBase {
 
   public void updateOdometry() {
     //testing to see if odometry reading needs to be inverted 
-    System.out.println("FrontLeft: " + m_frontLeft.getRealPosition());
+    //System.out.println("FrontLeft: " + m_frontLeft.getRealPosition());
     m_driveOdometry.update(m_gyro.getRotation2d(), getPositions()); 
   }
 }

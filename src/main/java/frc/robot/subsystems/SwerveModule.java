@@ -10,14 +10,10 @@ import com.revrobotics.CANSparkBase.IdleMode;
 import com.revrobotics.CANSparkLowLevel.MotorType;
 import com.revrobotics.SparkPIDController.AccelStrategy;
 
-import frc.robot.Constants.DriveConstants;
 import frc.robot.Constants.SwerveModuleConstants;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.math.controller.PIDController; 
-import edu.wpi.first.math.controller.ProfiledPIDController;
-import edu.wpi.first.math.trajectory.TrapezoidProfile;
 
 public class SwerveModule{
 
@@ -29,10 +25,6 @@ public class SwerveModule{
 
   public final SparkPIDController m_drivePID; //change back to private
   public final SparkPIDController m_turnPID;  //commented out for now
-
-  //new (change to private and final after tuning)
-  // public PIDController m_drivePID = new PIDController(SwerveModuleConstants.kDriveP, 0, 0);
-  // public ProfiledPIDController m_turnPID = new ProfiledPIDController(SwerveModuleConstants.kTurnP,0,0, new TrapezoidProfile.Constraints(DriveConstants.kMaxAngularSpeed, DriveConstants.kMaxAngularAcceleration));
 
   private double m_chassisAngularOffset = 0; //default chassis offset //the angle of the module from its calibrated position to being straight
   private SwerveModuleState m_desiredState = new SwerveModuleState(0.0, new Rotation2d());  
@@ -98,9 +90,6 @@ public class SwerveModule{
     m_driveMotor.burnFlash();
     m_turnMotor.burnFlash(); 
 
-    //new 
-    // m_turnPID.enableContinuousInput(-Math.PI, Math.PI);
-    
     //zeros the drive Encoder on start 
     m_driveEncoder.setPosition(0);
     m_desiredState.angle = new Rotation2d(m_turnEncoder.getPosition());
@@ -152,23 +141,10 @@ public class SwerveModule{
     // minimizes the angle change needed to achieve what we need
     SwerveModuleState optimizedDesiredState = SwerveModuleState.optimize(correctedDesiredState, Rotation2d.fromRadians(m_turnEncoder.getPosition()));
 
-    //new (scales down movement perpendicular to the desired direction of travel that can occur when modules change directions)
-    optimizedDesiredState.speedMetersPerSecond *= optimizedDesiredState.angle.minus(Rotation2d.fromRadians(m_turnEncoder.getPosition())).getCos();
-
     // tells the robot which states we want.
-    m_drivePID.setReference(optimizedDesiredState.speedMetersPerSecond, CANSparkMax.ControlType.kVelocity);
-    m_turnPID.setReference(optimizedDesiredState.angle.getRadians(), CANSparkMax.ControlType.kPosition); 
+    m_drivePID.setReference(optimizedDesiredState.speedMetersPerSecond, ControlType.kVelocity);
+    m_turnPID.setReference(optimizedDesiredState.angle.getRadians(), ControlType.kPosition); 
     
-    //new (calculates voltages for motors)
-    // double driveOutput = m_drivePID.calculate(m_driveEncoder.getVelocity(), optimizedDesiredState.speedMetersPerSecond);
-    // double turnOutput = m_turnPID.calculate(m_turnEncoder.getPosition(), optimizedDesiredState.angle.getRadians());
-
-    // new (sets motor voltages)
-    // m_driveMotor.set(driveOutput);
-    // m_turnMotor.set(turnOutput);
-
-    //not entirely sure what this is doing
-    //doesn't have any apparent use 
     m_desiredState = desiredState; 
   }
 
