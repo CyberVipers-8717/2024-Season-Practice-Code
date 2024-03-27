@@ -21,46 +21,17 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructArrayPublisher;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
 import com.pathplanner.lib.util.PIDConstants;
 import com.pathplanner.lib.util.ReplanningConfig;
-import com.revrobotics.SparkPIDController;
 
 public class DriveSubsystem extends SubsystemBase {
 
   
   /** Creates a new ExampleSubsystem. */
-  public DriveSubsystem() {
-    //current hypothesis: path planner is generating the right chassis speeds but we have to flip them //fyi chassis speeds are robot relative
-    //however if we flip the speed the pose gets messed up because path planner thinks its going the wrong direction 
-    //possible solutions: mess with the chassis speeds to confirm that the chassis speeds are right, flip the speeds, modify the getpose function to account for the error
-    AutoBuilder.configureHolonomic(
-      () -> {var x = getPose(); System.out.println("Pose: " + x.getX() + " " + x.getY() + " " + x.getRotation().getDegrees()); return x; },
-      (pose) -> {System.out.println("Resetting Pose: "); resetPose(pose);},
-      this::getCurrentSpeeds,
-      this::autoDrive,
-      new HolonomicPathFollowerConfig(
-
-        new PIDConstants(5.0, 0.0, 0.0),
-        new PIDConstants(5.0, 0.0, 0.0),
-        4.8, 
-        0.33, 
-        new ReplanningConfig()
-      ),
-      () -> { 
-        //if FMS is not connected then it defaults to whatever alliance is set in the driverstation 
-        var alliance = DriverStation.getAlliance(); 
-          if (alliance.isPresent()) {
-            return alliance.get() == DriverStation.Alliance.Red;
-          }
-          return false; 
-      },
-      this
-    );
-  }
+  public DriveSubsystem() {}
 
   //declaring swerve modules (change to private after tuning)
   public final SwerveModule m_frontLeft = new SwerveModule(DriveConstants.kFrontLeftDriveMotorPort, DriveConstants.kFrontLeftTurnMotorPort, Math.PI/2); //change back to private 
@@ -76,16 +47,13 @@ public class DriveSubsystem extends SubsystemBase {
   //odometry object to track the robots pose on the field
   private final SwerveDriveOdometry m_driveOdometry = new SwerveDriveOdometry(DriveConstants.kDriveKinematics, m_gyro.getRotation2d(), m_swervePositions); 
 
-
   //serializes and publishes data for visualization using advantagescope 
   private final StructArrayPublisher<SwerveModuleState> publisher = NetworkTableInstance.getDefault().getStructArrayTopic("MyStates", SwerveModuleState.struct).publish();
-  public final Field2d field = new Field2d();
-
   //default drive method that converts controller input into field centric robot movement
   public void drive(double xSpeed, double ySpeed, double arr){
     //generates array of swerve module states from controller input
     var swerveModuleStates = DriveConstants.kDriveKinematics.toSwerveModuleStates(ChassisSpeeds.discretize(
-      ChassisSpeeds.fromFieldRelativeSpeeds(xSpeed, ySpeed, arr, m_gyro.getRotation2d()), DriveConstants.kDriverPeriod));
+      tofieldRelative(xSpeed, ySpeed, arr), DriveConstants.kDriverPeriod));
 
     //caps wheel speeds to ensure they don't go faster than they're allowed to 
     SwerveDriveKinematics.desaturateWheelSpeeds(swerveModuleStates, DriveConstants.kMaxSpeedMetersPerSecond);
@@ -200,6 +168,11 @@ public class DriveSubsystem extends SubsystemBase {
   public SwerveModulePosition[] getPositions() {
     return new SwerveModulePosition[] {m_frontLeft.getPosition(), m_frontRight.getPosition(), m_rearLeft.getPosition(), m_rearRight.getPosition()};
   }
+
+  public SwerveModulePosition[] getRealPositions() {
+    return new SwerveModulePosition[] {m_frontLeft.getRealPosition(), m_frontRight.getRealPosition(), m_rearLeft.getRealPosition(), m_rearRight.getRealPosition()};
+  }
+
   
   //gets the current state of the swerve modules
   //at the start this should be 0 m/s and the Rotation2d representing the current angle of the wheels 
@@ -219,7 +192,6 @@ public class DriveSubsystem extends SubsystemBase {
     publisher.set(getStates()); 
     //updates the swerve odometry every clock cycle
     updateOdometry();
-    field.setRobotPose(getPose());
   }
 
   @Override
@@ -233,13 +205,13 @@ public class DriveSubsystem extends SubsystemBase {
   }
 
   //X's the wheels to lock them in place
-  public Command xWheels() {
-    return new RunCommand(() -> {m_frontLeft.setDesiredState(new SwerveModuleState(0, new Rotation2d(Math.PI/4))); m_frontRight.setDesiredState(new SwerveModuleState(0, new Rotation2d(-Math.PI/4))); m_rearLeft.setDesiredState(new SwerveModuleState(0, new Rotation2d(-Math.PI/4))); m_rearRight.setDesiredState(new SwerveModuleState(0, new Rotation2d(Math.PI/4)));}, this);
-  }
+  // public Command xWheels() {
+  //   return new RunCommand(() -> {m_frontLeft.setDesiredState(new SwerveModuleState(0, new Rotation2d(Math.PI/4))); m_frontRight.setDesiredState(new SwerveModuleState(0, new Rotation2d(-Math.PI/4))); m_rearLeft.setDesiredState(new SwerveModuleState(0, new Rotation2d(-Math.PI/4))); m_rearRight.setDesiredState(new SwerveModuleState(0, new Rotation2d(Math.PI/4)));}, this);
+  // }
 
   public void updateOdometry() {
     //testing to see if odometry reading needs to be inverted 
     //System.out.println("FrontLeft: " + m_frontLeft.getRealPosition());
-    m_driveOdometry.update(m_gyro.getRotation2d(), getPositions()); 
+    m_driveOdometry.update(m_gyro.getRotation2d(), getRealPositions()); //getPositions()
   }
 }

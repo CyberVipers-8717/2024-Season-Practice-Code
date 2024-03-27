@@ -38,7 +38,7 @@ public class UptakeSubsystem extends SubsystemBase {
 
     //gets the current reading from the the uptake 
     public double getAmps() {
-        return m_pdh.getCurrent(6);
+        return m_pdh.getCurrent(12);
     }
     
     public void zeroEncoder() {

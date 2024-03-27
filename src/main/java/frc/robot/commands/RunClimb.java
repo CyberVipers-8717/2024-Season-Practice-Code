@@ -80,13 +80,13 @@ public class RunClimb extends Command {
 
     @Override 
     public boolean isFinished() { 
-       if(m_climb.getPosition() <= 0) {
-        return true; 
-       } else if(m_climb.getPosition() >= 120) {
-        return true; 
-       } else {
-        return false; 
-       }
+        if (speed < 0 && m_climb.getPosition() <= 0 ) { //going down and hit bottom
+            return true;     
+        } else if (speed > 0 && m_climb.getPosition() >= 100) { //going up and hit top
+            return true; 
+        } else {
+            return false; 
+        }
     }
     
 }
