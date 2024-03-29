@@ -28,13 +28,15 @@ import com.pathplanner.lib.commands.PathPlannerAuto;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.wpilibj.Joystick;
-import edu.wpi.first.wpilibj.RobotState;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.RunCommand;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 
@@ -135,14 +137,14 @@ public class RobotContainer {
 
     manipulatorLeftShoulder.whileTrue(Commands.parallel(new RunIntake(m_intake, -.25), new RunUptake(m_uptake, -.25), new RunShooter(m_shooter, -.5))); //Flushes everything backwards
     manipulatorRightShoulder.whileTrue(new RunUptake(m_uptake, .26)); // pops a note into shooter
-   // manipulatorLeftTrigger.whileTrue(new RunShooter(m_shooter, .65)); // revs the shooter //.65 speed for speaker //.20 speed for amp //.45 speed for trap 
+   //manipulatorLeftTrigger.whileTrue(new RunShooter(m_shooter, .65)); // revs the shooter //.65 speed for speaker //.20 speed for amp //.45 speed for trap 
     manipulatorRightTrigger.whileTrue(Commands.parallel(new RunIntake(m_intake, .5), new RunUptake(m_uptake, .25))); // runs intake and shooter and stops aftera note hits the uptake
-    manipulatorBButton.whileTrue(new RunShooter(m_shooter, .16));
-    manipulatorAButton.whileTrue(new RunShooter(m_shooter, .35));
-    manipulatorXButton.whileTrue(new RunShooter(m_shooter, .65));
+    manipulatorBButton.whileTrue(new RunShooter(m_shooter, .16)); //amp
+    manipulatorAButton.whileTrue(new RunShooter(m_shooter, .35)); //trap 
+    manipulatorXButton.whileTrue(new RunShooter(m_shooter, .65)); //speaker
 
-    driverLeftShoulder.whileTrue(new RunClimb(m_climb, -.25)); //down
-    driverRightShoulder.whileTrue(new RunClimb(m_climb, .25)); //up 
+    driverLeftShoulder.whileTrue(new RunClimb(m_climb, -.75)); //down
+    driverRightShoulder.whileTrue(new RunClimb(m_climb, .75)); //up 
 
     //resets the forward direction of the gyro
     //ask mark for what button he prefers
@@ -157,19 +159,19 @@ public class RobotContainer {
   public Command getAutonomousCommand() {
     switch (autoChooser.getSelected()) {
       case leftBlue:
-        return new AutoShooter(m_shooter , .15).andThen(new AutoDrive(1,1,1, 3, m_robotDrive));  
+        return new ParallelCommandGroup(new AutoShooter(m_shooter, .65), new SequentialCommandGroup(new WaitCommand(1.2), new AutoUptake(m_uptake, .5)));
       case midBlue: 
-        return new RunUptake(m_uptake, .2);
-      case rightBlue: //bad but idc
-        return new RunClimb(m_climb, 1);
+        return new ParallelCommandGroup(new AutoShooter(m_shooter, .65), new SequentialCommandGroup(new WaitCommand(1.2), new AutoUptake(m_uptake, .5))).andThen(new ParallelCommandGroup(new AutoDrive(4.3, 0, 0 , 1.5, m_robotDrive), new SequentialCommandGroup(new WaitCommand(1), new ParallelCommandGroup(new AutoIntake(m_intake, .5), new AutoUptake(m_uptake, .25)))));
+      case rightBlue:
+        return new ParallelCommandGroup(new AutoShooter(m_shooter, .65), new SequentialCommandGroup(new WaitCommand(1.2), new AutoUptake(m_uptake, .5)));
       case leftRed: 
-        return new Command() {};
+        return new ParallelCommandGroup(new AutoShooter(m_shooter, .65), new SequentialCommandGroup(new WaitCommand(1.2), new AutoUptake(m_uptake, .5)));
       case midRed: 
-        return new Command() {};
+        return new ParallelCommandGroup(new AutoShooter(m_shooter, .65), new SequentialCommandGroup(new WaitCommand(1.2), new AutoUptake(m_uptake, .5))).andThen(new ParallelCommandGroup(new AutoDrive(4.3, 0, 0 , 1.5, m_robotDrive), new SequentialCommandGroup(new WaitCommand(1), new ParallelCommandGroup(new AutoIntake(m_intake, .5), new AutoUptake(m_uptake, .25)))));
       case rightRed:
-        return new Command() {}; 
+        return new ParallelCommandGroup(new AutoShooter(m_shooter, .65), new SequentialCommandGroup(new WaitCommand(1.2), new AutoUptake(m_uptake, .5)));
       default: 
-        return new AutoShooter(m_shooter, 1);
+        return new ParallelCommandGroup(new AutoShooter(m_shooter, .65), new SequentialCommandGroup(new WaitCommand(1.2), new AutoUptake(m_uptake, .5)));
     }
   }
 

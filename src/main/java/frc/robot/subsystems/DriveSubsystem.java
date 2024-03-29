@@ -71,10 +71,6 @@ public class DriveSubsystem extends SubsystemBase {
     speeds.vxMetersPerSecond = -speeds.vxMetersPerSecond; //positive is backward //negative is forward
     speeds.vyMetersPerSecond = -speeds.vyMetersPerSecond; //positive is right //negative is left
     speeds.omegaRadiansPerSecond = -speeds.omegaRadiansPerSecond; //positive is clockwise //negative is ccw
-    //speeds.vxMetersPerSecond = -1; 
-    // speeds.vyMetersPerSecond = 0; 
-    // speeds.omegaRadiansPerSecond = 0; 
-    System.out.println("Speeds: " + speeds.vxMetersPerSecond + " " + speeds.vyMetersPerSecond + " " + speeds.omegaRadiansPerSecond); //testing remove later
     var swerveModuleStates = DriveConstants.kDriveKinematics.toSwerveModuleStates(ChassisSpeeds.discretize(
     speeds, DriveConstants.kDriverPeriod
     ));

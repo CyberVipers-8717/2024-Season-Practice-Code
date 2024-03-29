@@ -69,7 +69,6 @@ public class RunClimb extends Command {
 
     @Override 
     public void execute() {
-        System.out.println(m_climb.getPosition()); 
         m_climb.setMotor(speed);
     }
 
