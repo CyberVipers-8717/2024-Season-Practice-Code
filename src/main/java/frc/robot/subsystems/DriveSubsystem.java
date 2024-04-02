@@ -31,13 +31,41 @@ public class DriveSubsystem extends SubsystemBase {
 
   
   /** Creates a new ExampleSubsystem. */
-  public DriveSubsystem() {}
+  public DriveSubsystem() {
+    AutoBuilder.configureHolonomic(
+            this::getPose, // Robot pose supplier
+            this::resetPose, // Method to reset odometry (will be called if your auto has a starting pose)
+            this::getCurrentSpeeds, // ChassisSpeeds supplier. MUST BE ROBOT RELATIVE
+            this::autoDrive, // Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds
+            new HolonomicPathFollowerConfig( // HolonomicPathFollowerConfig, this should likely live in your Constants class
+                    new PIDConstants(5.0, 0.0, 0.0), // Translation PID constants
+                    new PIDConstants(5.0, 0.0, 0.0), // Rotation PID constants
+                    4.3, // Max module speed, in m/s
+                    0.33, // Drive base radius in meters. Distance from robot center to furthest module.
+                    new ReplanningConfig() // Default path replanning config. See the API for the options here
+            ),
+            () -> {
+              // Boolean supplier that controls when the path will be mirrored for the red alliance
+              // This will flip the path being followed to the red side of the field.
+              // THE ORIGIN WILL REMAIN ON THE BLUE SIDE
+
+              var alliance = DriverStation.getAlliance();
+              if (alliance.isPresent()) {
+                return alliance.get() == DriverStation.Alliance.Red;
+              }
+              return false;
+            },
+            this // Reference to this subsystem to set requirements
+    );
+    
+  }
+
+  public final SwerveModule m_frontLeft = new SwerveModule(DriveConstants.kFrontLeftDriveMotorPort, DriveConstants.kFrontLeftTurnMotorPort, -Math.PI/2); //change back to private  //Math.PI/2
+  public final SwerveModule m_frontRight = new SwerveModule(DriveConstants.kFrontRightDriveMotorPort, DriveConstants.kFrontRightTurnMotorPort, 0); //Math.PI
+  public final SwerveModule m_rearLeft = new SwerveModule(DriveConstants.kRearLeftDriveMotorPort, DriveConstants.kRearLeftTurnMotorPort, Math.PI); //0
+  public final SwerveModule m_rearRight = new SwerveModule(DriveConstants.kRearRightDriveMotorPort, DriveConstants.kRearRightTurnMotorPort, Math.PI/2); //-Math.PI/2 
 
   //declaring swerve modules (change to private after tuning)
-  public final SwerveModule m_frontLeft = new SwerveModule(DriveConstants.kFrontLeftDriveMotorPort, DriveConstants.kFrontLeftTurnMotorPort, Math.PI/2); //change back to private 
-  public final SwerveModule m_frontRight = new SwerveModule(DriveConstants.kFrontRightDriveMotorPort, DriveConstants.kFrontRightTurnMotorPort, Math.PI);
-  public final SwerveModule m_rearLeft = new SwerveModule(DriveConstants.kRearLeftDriveMotorPort, DriveConstants.kRearLeftTurnMotorPort, 0);
-  public final SwerveModule m_rearRight = new SwerveModule(DriveConstants.kRearRightDriveMotorPort, DriveConstants.kRearRightTurnMotorPort, -Math.PI/2);
 
   private final SwerveModulePosition[] m_swervePositions = getPositions();
   
@@ -53,7 +81,7 @@ public class DriveSubsystem extends SubsystemBase {
   public void drive(double xSpeed, double ySpeed, double arr){
     //generates array of swerve module states from controller input
     var swerveModuleStates = DriveConstants.kDriveKinematics.toSwerveModuleStates(ChassisSpeeds.discretize(
-      tofieldRelative(xSpeed, ySpeed, arr), DriveConstants.kDriverPeriod));
+      ChassisSpeeds.fromFieldRelativeSpeeds(xSpeed, ySpeed, arr, m_gyro.getRotation2d()), DriveConstants.kDriverPeriod));
 
     //caps wheel speeds to ensure they don't go faster than they're allowed to 
     SwerveDriveKinematics.desaturateWheelSpeeds(swerveModuleStates, DriveConstants.kMaxSpeedMetersPerSecond);
@@ -67,10 +95,6 @@ public class DriveSubsystem extends SubsystemBase {
 
   //auto drive method for path following 
   public void autoDrive(ChassisSpeeds speeds) {
-    // (new) check to see if that fixed the chassis speeds w/o inverting 
-    speeds.vxMetersPerSecond = -speeds.vxMetersPerSecond; //positive is backward //negative is forward
-    speeds.vyMetersPerSecond = -speeds.vyMetersPerSecond; //positive is right //negative is left
-    speeds.omegaRadiansPerSecond = -speeds.omegaRadiansPerSecond; //positive is clockwise //negative is ccw
     var swerveModuleStates = DriveConstants.kDriveKinematics.toSwerveModuleStates(ChassisSpeeds.discretize(
     speeds, DriveConstants.kDriverPeriod
     ));
@@ -208,6 +232,6 @@ public class DriveSubsystem extends SubsystemBase {
   public void updateOdometry() {
     //testing to see if odometry reading needs to be inverted 
     //System.out.println("FrontLeft: " + m_frontLeft.getRealPosition());
-    m_driveOdometry.update(m_gyro.getRotation2d(), getRealPositions()); //getPositions()
+    m_driveOdometry.update(m_gyro.getRotation2d(), getPositions()); //getPositions()
   }
 }

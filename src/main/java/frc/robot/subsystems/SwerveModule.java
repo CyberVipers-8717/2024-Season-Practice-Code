@@ -148,6 +148,27 @@ public class SwerveModule{
     m_desiredState = desiredState; 
   }
 
+  //  @Override
+  // public void initSendable(SendableBuilder builder) {
+  //   builder.setSmartDashboardType("PIDController");
+  //   builder.addDoubleProperty("p", () -> {return m_drivePID.getP();}, (double x) -> {m_drivePID.setP(x);});
+  //   builder.addDoubleProperty("i", () -> {return m_drivePID.getI();}, (double x) -> {m_drivePID.setI(x);});
+  //   builder.addDoubleProperty("d", () -> {return m_drivePID.getD();}, (double x) -> {m_drivePID.setD(x);});
+  //   builder.addDoubleProperty(
+  //       "izone",
+  //       () -> {return m_drivePID.getIZone();},
+  //       (double toSet) -> {
+  //         try {
+  //           m_drivePID.setIZone(toSet);
+  //         } catch (IllegalArgumentException e) {
+  //           MathSharedStore.reportError("IZone must be a non-negative number!", e.getStackTrace());
+  //         }
+  //       });
+  //   builder.addDoubleProperty("setpoint", () -> {return 0;}, (x) -> {;});
+  // }
+
+  
+
 }
 
 

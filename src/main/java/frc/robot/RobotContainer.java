@@ -24,11 +24,10 @@ import frc.robot.subsystems.UptakeSubsystem;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
-import com.pathplanner.lib.commands.PathPlannerAuto;
 
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.util.sendable.SendableRegistry;
 import edu.wpi.first.wpilibj.Joystick;
-import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -62,38 +61,41 @@ public class RobotContainer {
   private final LimelightSubsystem m_frontLimeLight = new LimelightSubsystem("front");
   private final LimelightSubsystem m_backLimeLight = new LimelightSubsystem("back");
 
-
   //controllers for driver and manipulator
   Joystick m_driverController = new Joystick(OperatorConstants.kDriverControllerPort);
   Joystick m_manipulatorController = new Joystick(ManipulatorConstants.kManipulatorControllerPort);
 
   //declaring auto dropdown
-  private final String leftBlue = "Left Blue";
-  private final String midBlue = "Mid Blue"; 
-  private final String rightBlue = "Right Blue";
-  private final String leftRed = "Left Red";
-  private final String midRed = "Mid Red";
-  private final String rightRed = "Right Red";
-  private final SendableChooser<String> autoChooser = new SendableChooser<>(); 
+  // private final String leftBlue = "Left Blue";
+  // private final String midBlue = "Mid Blue"; 
+  // private final String rightBlue = "Right Blue";
+  // private final String leftRed = "Left Red";
+  // private final String midRed = "Mid Red";
+  // private final String rightRed = "Right Red";
+  //private final SendableChooser<String> autoChooser = new SendableChooser<>(); 
+  private SendableChooser<Command> autoChooser = new SendableChooser<>(); 
 
   public RobotContainer() {
+
+    NamedCommands.registerCommand("intake", new AutoIntake(m_intake, .50)); 
+    NamedCommands.registerCommand("uptake", new AutoUptake(m_uptake, .25));
+    NamedCommands.registerCommand("shooter", new AutoShooter(m_shooter, .65));
     //binds controller buttons to commands
     configureButtonBindings();
-    
-    autoChooser.setDefaultOption("Left Blue Alliance", leftBlue);
-    autoChooser.addOption("Mid Blue Alliance", midBlue);
-    autoChooser.addOption("Right Blue Alliance", rightBlue);
-    autoChooser.addOption("Left Red Alliance", leftRed);
-    autoChooser.addOption("Mid Red Alliance", midRed);
-    autoChooser.addOption("Right Red Alliance", rightRed);
-
+    autoChooser = AutoBuilder.buildAutoChooser(); 
+    // autoChooser.setDefaultOption("Left Blue Alliance", leftBlue);
+    // autoChooser.addOption("Mid Blue Alliance", midBlue);
+    // autoChooser.addOption("Right Blue Alliance", rightBlue);
+    // autoChooser.addOption("Left Red Alliance", leftRed);
+    // autoChooser.addOption("Mid Red Alliance", midRed);
+    // autoChooser.addOption("Right Red Alliance", rightRed);
     // default command for drive subsystem
     m_robotDrive.setDefaultCommand(
         new RunCommand( 
             () -> m_robotDrive.drive(
                 squared(-MathUtil.applyDeadband(m_driverController.getRawAxis(OperatorConstants.kLeftYAxisPort), .08))*DriveConstants.kMaxSpeedMetersPerSecond, //-
                 squared(-MathUtil.applyDeadband(m_driverController.getRawAxis(OperatorConstants.kLeftXAxisPort), .08))*DriveConstants.kMaxSpeedMetersPerSecond, //- for ours
-                squared(MathUtil.applyDeadband(m_driverController.getRawAxis(OperatorConstants.kRightXAxisPort),.08))*DriveConstants.kMaxAngularSpeed), 
+                squared(-MathUtil.applyDeadband(m_driverController.getRawAxis(OperatorConstants.kRightXAxisPort),.08))*DriveConstants.kMaxAngularSpeed), 
             m_robotDrive));
 
     
@@ -136,15 +138,15 @@ public class RobotContainer {
     Trigger manipulatorXButton = new JoystickButton(m_manipulatorController, ManipulatorConstants.kManipulatorXButton);
 
     manipulatorLeftShoulder.whileTrue(Commands.parallel(new RunIntake(m_intake, -.25), new RunUptake(m_uptake, -.25), new RunShooter(m_shooter, -.5))); //Flushes everything backwards
-    manipulatorRightShoulder.whileTrue(new RunUptake(m_uptake, .26)); // pops a note into shooter
+    manipulatorRightShoulder.whileTrue(new RunUptake(m_uptake, .35)); // pops a note into shooter
    //manipulatorLeftTrigger.whileTrue(new RunShooter(m_shooter, .65)); // revs the shooter //.65 speed for speaker //.20 speed for amp //.45 speed for trap 
     manipulatorRightTrigger.whileTrue(Commands.parallel(new RunIntake(m_intake, .5), new RunUptake(m_uptake, .25))); // runs intake and shooter and stops aftera note hits the uptake
-    manipulatorBButton.whileTrue(new RunShooter(m_shooter, .16)); //amp
+    manipulatorBButton.whileTrue(new RunShooter(m_shooter, .155)); //amp
     manipulatorAButton.whileTrue(new RunShooter(m_shooter, .35)); //trap 
-    manipulatorXButton.whileTrue(new RunShooter(m_shooter, .65)); //speaker
+    manipulatorXButton.whileTrue(new RunShooter(m_shooter, .70)); //speaker
 
-    driverLeftShoulder.whileTrue(new RunClimb(m_climb, -.75)); //down
-    driverRightShoulder.whileTrue(new RunClimb(m_climb, .75)); //up 
+    driverLeftShoulder.whileTrue(new RunClimb(m_climb, -.85)); //down
+    driverRightShoulder.whileTrue(new RunClimb(m_climb, .85)); //up 
 
     //resets the forward direction of the gyro
     //ask mark for what button he prefers
@@ -157,22 +159,23 @@ public class RobotContainer {
 
   //retrieves command to be scheduled during auto 
   public Command getAutonomousCommand() {
-    switch (autoChooser.getSelected()) {
-      case leftBlue:
-        return new ParallelCommandGroup(new AutoShooter(m_shooter, .65), new SequentialCommandGroup(new WaitCommand(1.2), new AutoUptake(m_uptake, .5)));
-      case midBlue: 
-        return new ParallelCommandGroup(new AutoShooter(m_shooter, .65), new SequentialCommandGroup(new WaitCommand(1.2), new AutoUptake(m_uptake, .5))).andThen(new ParallelCommandGroup(new AutoDrive(4.3, 0, 0 , 1.5, m_robotDrive), new SequentialCommandGroup(new WaitCommand(1), new ParallelCommandGroup(new AutoIntake(m_intake, .5), new AutoUptake(m_uptake, .25)))));
-      case rightBlue:
-        return new ParallelCommandGroup(new AutoShooter(m_shooter, .65), new SequentialCommandGroup(new WaitCommand(1.2), new AutoUptake(m_uptake, .5)));
-      case leftRed: 
-        return new ParallelCommandGroup(new AutoShooter(m_shooter, .65), new SequentialCommandGroup(new WaitCommand(1.2), new AutoUptake(m_uptake, .5)));
-      case midRed: 
-        return new ParallelCommandGroup(new AutoShooter(m_shooter, .65), new SequentialCommandGroup(new WaitCommand(1.2), new AutoUptake(m_uptake, .5))).andThen(new ParallelCommandGroup(new AutoDrive(4.3, 0, 0 , 1.5, m_robotDrive), new SequentialCommandGroup(new WaitCommand(1), new ParallelCommandGroup(new AutoIntake(m_intake, .5), new AutoUptake(m_uptake, .25)))));
-      case rightRed:
-        return new ParallelCommandGroup(new AutoShooter(m_shooter, .65), new SequentialCommandGroup(new WaitCommand(1.2), new AutoUptake(m_uptake, .5)));
-      default: 
-        return new ParallelCommandGroup(new AutoShooter(m_shooter, .65), new SequentialCommandGroup(new WaitCommand(1.2), new AutoUptake(m_uptake, .5)));
-    }
+    // switch (autoChooser.getSelected()) {
+    //   case leftBlue:
+    //     return new ParallelCommandGroup(new AutoShooter(m_shooter, .65), new SequentialCommandGroup(new WaitCommand(1.2), new AutoUptake(m_uptake, .5)));
+    //   case midBlue: 
+    //     return new ParallelCommandGroup(new AutoShooter(m_shooter, .65), new SequentialCommandGroup(new WaitCommand(1.2), new AutoUptake(m_uptake, .5))).andThen(new ParallelCommandGroup(new AutoDrive(1.2, 0, 0 , 1, m_robotDrive), new SequentialCommandGroup(new WaitCommand(1), new ParallelCommandGroup(new AutoIntake(m_intake, .5), new AutoUptake(m_uptake, .25)))));
+    //   case rightBlue:
+    //     return new ParallelCommandGroup(new AutoShooter(m_shooter, .65), new SequentialCommandGroup(new WaitCommand(1.2), new AutoUptake(m_uptake, .5)));
+    //   case leftRed: 
+    //     return new ParallelCommandGroup(new AutoShooter(m_shooter, .65), new SequentialCommandGroup(new WaitCommand(1.2), new AutoUptake(m_uptake, .5)));
+    //   case midRed: 
+    //     return new ParallelCommandGroup(new AutoShooter(m_shooter, .65), new SequentialCommandGroup(new WaitCommand(1.2), new AutoUptake(m_uptake, .5))).andThen(new ParallelCommandGroup(new AutoDrive(1.2, 0, 0 , 1, m_robotDrive), new SequentialCommandGroup(new WaitCommand(1), new ParallelCommandGroup(new AutoIntake(m_intake, .5), new AutoUptake(m_uptake, .25)))));
+    //   case rightRed:
+    //     return new ParallelCommandGroup(new AutoShooter(m_shooter, .65), new SequentialCommandGroup(new WaitCommand(1.2), new AutoUptake(m_uptake, .5)));
+    //   default: 
+    //     return new ParallelCommandGroup(new AutoShooter(m_shooter, .65), new SequentialCommandGroup(new WaitCommand(1.2), new AutoUptake(m_uptake, .5)));
+    // }
+    return autoChooser.getSelected(); 
   }
 
 }
