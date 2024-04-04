@@ -17,6 +17,7 @@ public class AutoUptake extends Command {
 
     @Override 
     public void initialize() {
+        waitTimer.reset();
         waitTimer.start();
         m_uptake.zeroEncoder();
     }
@@ -29,7 +30,7 @@ public class AutoUptake extends Command {
     @Override 
     public void end(boolean interrupted) {
         m_uptake.setMotor(0);
-        waitTimer.reset(); 
+        waitTimer.stop(); 
 
     }
 

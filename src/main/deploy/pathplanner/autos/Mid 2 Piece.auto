@@ -2,10 +2,10 @@
   "version": 1.0,
   "startingPose": {
     "position": {
-      "x": 0.6630730971658731,
-      "y": 6.667299774671107
+      "x": 1.2651860724115016,
+      "y": 5.565873600441298
     },
-    "rotation": 61.69924423399357
+    "rotation": 0
   },
   "command": {
     "type": "sequential",
@@ -50,7 +50,7 @@
               {
                 "type": "path",
                 "data": {
-                  "pathName": "Example Path"
+                  "pathName": "Mid to Mid Note"
                 }
               },
               {
@@ -60,7 +60,7 @@
                     {
                       "type": "wait",
                       "data": {
-                        "waitTime": 1.75
+                        "waitTime": 1.35
                       }
                     },
                     {
@@ -77,6 +77,64 @@
                             "type": "named",
                             "data": {
                               "name": "uptake"
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "parallel",
+          "data": {
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "Mid Note to Mid"
+                }
+              },
+              {
+                "type": "sequential",
+                "data": {
+                  "commands": [
+                    {
+                      "type": "wait",
+                      "data": {
+                        "waitTime": 1.5
+                      }
+                    },
+                    {
+                      "type": "parallel",
+                      "data": {
+                        "commands": [
+                          {
+                            "type": "named",
+                            "data": {
+                              "name": "shooter"
+                            }
+                          },
+                          {
+                            "type": "sequential",
+                            "data": {
+                              "commands": [
+                                {
+                                  "type": "wait",
+                                  "data": {
+                                    "waitTime": 0.75
+                                  }
+                                },
+                                {
+                                  "type": "named",
+                                  "data": {
+                                    "name": "uptake"
+                                  }
+                                }
+                              ]
                             }
                           }
                         ]

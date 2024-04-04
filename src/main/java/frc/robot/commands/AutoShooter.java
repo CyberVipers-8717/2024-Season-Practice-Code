@@ -17,6 +17,7 @@ public class AutoShooter extends Command {
 
     @Override 
     public void initialize() {
+        waitTimer.reset();
         waitTimer.start(); 
         m_shooter.zeroEncoders();
     }
@@ -29,7 +30,7 @@ public class AutoShooter extends Command {
     @Override 
     public void end(boolean interrupted) {
         m_shooter.setMotors(0);
-        waitTimer.reset(); 
+        waitTimer.stop(); 
     }
 
     @Override 

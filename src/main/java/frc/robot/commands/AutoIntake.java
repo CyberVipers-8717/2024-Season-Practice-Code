@@ -17,6 +17,7 @@ public class AutoIntake extends Command {
 
     @Override 
     public void initialize() {
+        waitTimer.restart();
         waitTimer.start(); 
         m_intake.zeroEncoders();
     }
@@ -29,7 +30,7 @@ public class AutoIntake extends Command {
     @Override 
     public void end(boolean interrupted) {
         m_intake.setMotors(0);
-        waitTimer.reset(); 
+        waitTimer.stop();  
     }
 
     @Override 

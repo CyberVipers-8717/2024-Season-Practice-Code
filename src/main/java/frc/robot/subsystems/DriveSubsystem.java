@@ -37,11 +37,11 @@ public class DriveSubsystem extends SubsystemBase {
   /** Creates a new ExampleSubsystem. */
   public DriveSubsystem() {
     AutoBuilder.configureHolonomic(
-            this::getPose, // Robot pose supplier
-            this::resetPose, // Method to reset odometry (will be called if your auto has a starting pose)
-            this::getCurrentSpeeds, // ChassisSpeeds supplier. MUST BE ROBOT RELATIVE
-            this::autoDrive, // Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds
-            new HolonomicPathFollowerConfig( // HolonomicPathFollowerConfig, this should likely live in your Constants class
+            this::getPose, 
+            this::resetPose, 
+            this::getCurrentSpeeds, 
+            this::autoDrive,
+            new HolonomicPathFollowerConfig( 
                     new PIDConstants(5.0, 0.0, 0.0), // Translation PID constants
                     new PIDConstants(5.0, 0.0, 0.0), // Rotation PID constants
                     4.3, // Max module speed, in m/s
@@ -84,9 +84,9 @@ public class DriveSubsystem extends SubsystemBase {
           DriveConstants.kDriveKinematics,
           m_gyro.getRotation2d(),
           getPositions(),
-          new Pose2d(),
-          VecBuilder.fill(0.05, 0.05, Units.degreesToRadians(5)),
-          VecBuilder.fill(0.5, 0.5, Units.degreesToRadians(30)));
+          new Pose2d(), //below - 1x3 matrix of the form (x,y,theta) in meters and radians
+          VecBuilder.fill(0.05, 0.05, Units.degreesToRadians(5)), //stddev of state-space control pose estimate (wpilib) //increase values if you want to trust this estimate less
+          VecBuilder.fill(0.5, 0.5, Units.degreesToRadians(30))); //stddev of vision pose estimate (limelight) //increase values if you want to trust this estimate less
 
   //serializes and publishes data for visualization using advantagescope 
   private final StructArrayPublisher<SwerveModuleState> publisher = NetworkTableInstance.getDefault().getStructArrayTopic("MyStates", SwerveModuleState.struct).publish();
@@ -240,10 +240,47 @@ public class DriveSubsystem extends SubsystemBase {
   public void updateOdometry() {
     m_driveOdometry.update(m_gyro.getRotation2d(), getPositions());
     m_poseEstimator.update(m_gyro.getRotation2d(), getPositions()); 
-    LimelightHelpers.PoseEstimate limelightMeasurement = LimelightHelpers.getBotPoseEstimate_wpiBlue("back");
-    if(limelightMeasurement.tagCount >= 2) {
-      m_poseEstimator.setVisionMeasurementStdDevs(VecBuilder.fill(.7,.7,9999999));
-      m_poseEstimator.addVisionMeasurement(limelightMeasurement.pose, limelightMeasurement.timestampSeconds);
+    boolean useMegaTag2 = true; //set to false to use MegaTag1
+    boolean doRejectUpdate = false;
+    if(useMegaTag2 == false)
+    {
+      LimelightHelpers.PoseEstimate mt1 = LimelightHelpers.getBotPoseEstimate_wpiBlue("back");
+      
+      if(mt1.tagCount == 1 && mt1.rawFiducials.length == 1)
+      {
+        if(mt1.rawFiducials[0].ambiguity > .7)
+        {
+          doRejectUpdate = true;
+        }
+        if(mt1.rawFiducials[0].distToCamera > 3)
+        {
+          doRejectUpdate = true;
+        }
+      }
+
+      if(!doRejectUpdate)
+      {
+        m_poseEstimator.setVisionMeasurementStdDevs(VecBuilder.fill(.5,.5,9999999));
+        m_poseEstimator.addVisionMeasurement(
+            mt1.pose,
+            mt1.timestampSeconds);
+      }
+    }
+    else if (useMegaTag2 == true)
+    {
+      LimelightHelpers.SetRobotOrientation("back", m_poseEstimator.getEstimatedPosition().getRotation().getDegrees(), 0, 0, 0, 0, 0);
+      LimelightHelpers.PoseEstimate mt2 = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2("back");
+      if(Math.abs(m_gyro.getRate()) > 720) // if our angular velocity is greater than 720 degrees per second, ignore vision updates
+      {
+        doRejectUpdate = true;
+      }
+      if(!doRejectUpdate)
+      {
+        m_poseEstimator.setVisionMeasurementStdDevs(VecBuilder.fill(.7,.7,9999999));
+        m_poseEstimator.addVisionMeasurement(
+            mt2.pose,
+            mt2.timestampSeconds);
+      }
     }
   }
 }

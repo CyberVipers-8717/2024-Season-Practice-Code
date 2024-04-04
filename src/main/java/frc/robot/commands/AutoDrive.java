@@ -27,6 +27,7 @@ public class AutoDrive extends Command {
 
     @Override 
     public void initialize() {
+        waitTimer.reset();
         waitTimer.start(); 
     }
 
@@ -37,7 +38,7 @@ public class AutoDrive extends Command {
 
     @Override 
     public void end(boolean interrupted) {
-        waitTimer.reset(); 
+        waitTimer.stop(); 
        // m_drive.autoDrive(new ChassisSpeeds(0,0,0)); // will stop after every drive Command ends (bad)
     }
 
