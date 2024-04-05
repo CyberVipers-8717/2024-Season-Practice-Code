@@ -1,10 +1,10 @@
 package frc.robot.subsystems;
 
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 
+//simple limelight wrapper class to make it better fit the command-based paradigm 
 public class LimelightSubsystem extends SubsystemBase {
     private final NetworkTable table; 
 

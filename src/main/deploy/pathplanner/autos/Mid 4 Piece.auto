@@ -1,0 +1,55 @@
+{
+  "version": 1.0,
+  "startingPose": {
+    "position": {
+      "x": 1.2651860724115016,
+      "y": 5.565873600441298
+    },
+    "rotation": 0
+  },
+  "command": {
+    "type": "sequential",
+    "data": {
+      "commands": [
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Mid to Mid Note"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Mid Note to Mid"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Mid to Left Note"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Left Note to Mid"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Mid to Right Note"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Right Note to Mid"
+          }
+        }
+      ]
+    }
+  },
+  "folder": null,
+  "choreoAuto": false
+}

@@ -26,7 +26,6 @@ import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 
 import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.util.sendable.SendableRegistry;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -96,7 +95,7 @@ public class RobotContainer {
                 squared(-MathUtil.applyDeadband(m_driverController.getRawAxis(OperatorConstants.kLeftYAxisPort), .08)), 
                 squared(-MathUtil.applyDeadband(m_driverController.getRawAxis(OperatorConstants.kLeftXAxisPort), .08)),
                 squared(-MathUtil.applyDeadband(m_driverController.getRawAxis(OperatorConstants.kRightXAxisPort),.08)), 
-                true), //turn to false to get rid of slew rate limiter
+                true, true), //turn to false to get rid of slew rate limiter
             m_robotDrive));
 
     
@@ -150,11 +149,9 @@ public class RobotContainer {
     driverRightShoulder.whileTrue(new RunClimb(m_climb, .85)); //up 
 
     //resets the forward direction of the gyro
-    //ask mark for what button he prefers
     driverBButton.onTrue(m_robotDrive.resetGyro());
 
     //currently only X's wheels while holding button because the default drive command overrides wheel orientation after release 
-    //check revlibs solution
     //driverXButton.whileTrue(m_robotDrive.xWheels());
   }
 

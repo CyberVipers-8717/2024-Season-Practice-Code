@@ -9,14 +9,12 @@ import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.DriveConstants;
-import frc.robot.Constants.SwerveModuleConstants;
 import frc.robot.utils.LimelightHelpers;
 import frc.robot.utils.SwerveUtils;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
@@ -101,7 +99,7 @@ public class DriveSubsystem extends SubsystemBase {
   private double m_prevTime = WPIUtilJNI.now() * 1e-6;
   
   //default drive method that converts controller input into field centric robot movement
-  public void drive(double xSpeed, double ySpeed, double arr, boolean rateLimit){
+  public void drive(double xSpeed, double ySpeed, double arr, boolean rateLimit, boolean fieldRelative){
     double xSpeedCommanded;
     double ySpeedCommanded;
 
@@ -159,8 +157,8 @@ public class DriveSubsystem extends SubsystemBase {
     double rotDelivered = m_currentRotation * DriveConstants.kMaxAngularSpeed;
 
     //generates array of swerve module states from controller input
-    var swerveModuleStates = DriveConstants.kDriveKinematics.toSwerveModuleStates(ChassisSpeeds.discretize(
-      ChassisSpeeds.fromFieldRelativeSpeeds(xSpeedDelivered, ySpeedDelivered, rotDelivered, m_gyro.getRotation2d()), DriveConstants.kDriverPeriod));
+    var swerveModuleStates = DriveConstants.kDriveKinematics.toSwerveModuleStates(ChassisSpeeds.discretize(fieldRelative ? 
+      ChassisSpeeds.fromFieldRelativeSpeeds(xSpeedDelivered, ySpeedDelivered, rotDelivered, m_poseEstimator.getEstimatedPosition().getRotation()): new ChassisSpeeds(xSpeedDelivered, ySpeedCommanded, rotDelivered), DriveConstants.kDriverPeriod));
 
     //caps wheel speeds to ensure they don't go faster than they're allowed to 
     SwerveDriveKinematics.desaturateWheelSpeeds(swerveModuleStates, DriveConstants.kMaxSpeedMetersPerSecond);
@@ -310,7 +308,7 @@ public class DriveSubsystem extends SubsystemBase {
     boolean doRejectUpdate = false;
     if(useMegaTag2 == false)
     {
-      LimelightHelpers.PoseEstimate mt1 = LimelightHelpers.getBotPoseEstimate_wpiBlue("back");
+      LimelightHelpers.PoseEstimate mt1 = LimelightHelpers.getBotPoseEstimate_wpiBlue("limelight");
       
       if(mt1.tagCount == 1 && mt1.rawFiducials.length == 1)
       {
@@ -323,6 +321,10 @@ public class DriveSubsystem extends SubsystemBase {
           doRejectUpdate = true;
         }
       }
+      if(mt1.tagCount == 0)
+      {
+        doRejectUpdate = true;
+      }
 
       if(!doRejectUpdate)
       {
@@ -334,9 +336,13 @@ public class DriveSubsystem extends SubsystemBase {
     }
     else if (useMegaTag2 == true)
     {
-      LimelightHelpers.SetRobotOrientation("back", m_poseEstimator.getEstimatedPosition().getRotation().getDegrees(), 0, 0, 0, 0, 0);
-      LimelightHelpers.PoseEstimate mt2 = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2("back");
+      LimelightHelpers.SetRobotOrientation("limelight-back", m_poseEstimator.getEstimatedPosition().getRotation().getDegrees(), 0, 0, 0, 0, 0);
+      LimelightHelpers.PoseEstimate mt2 = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2("limelight-back");
       if(Math.abs(m_gyro.getRate()) > 720) // if our angular velocity is greater than 720 degrees per second, ignore vision updates
+      {
+        doRejectUpdate = true;
+      }
+      if(mt2.tagCount == 0)
       {
         doRejectUpdate = true;
       }

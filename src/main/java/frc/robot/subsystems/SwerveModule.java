@@ -28,8 +28,6 @@ public class SwerveModule{
 
   private double m_chassisAngularOffset = 0; //default chassis offset //the angle of the module from its calibrated position to being straight
   private SwerveModuleState m_desiredState = new SwerveModuleState(0.0, new Rotation2d());  
-  private SwerveModuleState m_currentState = new SwerveModuleState();
-  private SwerveModulePosition m_currentPosition = new SwerveModulePosition(); 
 
   public SwerveModule(int driveMotorId, int turnMotorId, double chassisAngularOffset) {
     m_driveMotor = new CANSparkMax(driveMotorId, MotorType.kBrushless);
@@ -147,27 +145,6 @@ public class SwerveModule{
     
     m_desiredState = desiredState; 
   }
-
-  //  @Override
-  // public void initSendable(SendableBuilder builder) {
-  //   builder.setSmartDashboardType("PIDController");
-  //   builder.addDoubleProperty("p", () -> {return m_drivePID.getP();}, (double x) -> {m_drivePID.setP(x);});
-  //   builder.addDoubleProperty("i", () -> {return m_drivePID.getI();}, (double x) -> {m_drivePID.setI(x);});
-  //   builder.addDoubleProperty("d", () -> {return m_drivePID.getD();}, (double x) -> {m_drivePID.setD(x);});
-  //   builder.addDoubleProperty(
-  //       "izone",
-  //       () -> {return m_drivePID.getIZone();},
-  //       (double toSet) -> {
-  //         try {
-  //           m_drivePID.setIZone(toSet);
-  //         } catch (IllegalArgumentException e) {
-  //           MathSharedStore.reportError("IZone must be a non-negative number!", e.getStackTrace());
-  //         }
-  //       });
-  //   builder.addDoubleProperty("setpoint", () -> {return 0;}, (x) -> {;});
-  // }
-
-  
 
 }
 
