@@ -23,6 +23,11 @@ public final class Constants {
     public static final double kMaxAccelerationMetersPerSecond = 4.3; //theoretical max
     public static final double kMaxAngularSpeed = 2 * Math.PI; //radians per sec 
     public static final double kMaxAngularAcceleration = 2 * Math.PI; // radians per second per second
+
+    public static final double kDirectionSlewRate = 1.2; // radians per second
+    public static final double kMagnitudeSlewRate = 1.8; // percent per second (1 = 100%)
+    public static final double kRotationalSlewRate = 2.0; // percent per second (1 = 100%)
+
     //distance from center of left wheel to right wheel
     public static final double kTrackWidth = Units.inchesToMeters(22.5);
     //distance from center of front wheel to back wheel

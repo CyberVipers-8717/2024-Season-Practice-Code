@@ -58,8 +58,8 @@ public class RobotContainer {
   private final UptakeSubsystem m_uptake = new UptakeSubsystem();
   private final ShooterSubsystem m_shooter = new ShooterSubsystem();
   private final ClimbSubsystem m_climb = new ClimbSubsystem();
-  private final LimelightSubsystem m_frontLimeLight = new LimelightSubsystem("front");
-  private final LimelightSubsystem m_backLimeLight = new LimelightSubsystem("back");
+  private final LimelightSubsystem m_frontLimeLight = new LimelightSubsystem("limelight-front");
+  private final LimelightSubsystem m_backLimeLight = new LimelightSubsystem("limelight-back");
 
   //controllers for driver and manipulator
   Joystick m_driverController = new Joystick(OperatorConstants.kDriverControllerPort);
@@ -93,9 +93,10 @@ public class RobotContainer {
     m_robotDrive.setDefaultCommand(
         new RunCommand( 
             () -> m_robotDrive.drive(
-                squared(-MathUtil.applyDeadband(m_driverController.getRawAxis(OperatorConstants.kLeftYAxisPort), .08))*DriveConstants.kMaxSpeedMetersPerSecond, //-
-                squared(-MathUtil.applyDeadband(m_driverController.getRawAxis(OperatorConstants.kLeftXAxisPort), .08))*DriveConstants.kMaxSpeedMetersPerSecond, //- for ours
-                squared(-MathUtil.applyDeadband(m_driverController.getRawAxis(OperatorConstants.kRightXAxisPort),.08))*DriveConstants.kMaxAngularSpeed), 
+                squared(-MathUtil.applyDeadband(m_driverController.getRawAxis(OperatorConstants.kLeftYAxisPort), .08)), 
+                squared(-MathUtil.applyDeadband(m_driverController.getRawAxis(OperatorConstants.kLeftXAxisPort), .08)),
+                squared(-MathUtil.applyDeadband(m_driverController.getRawAxis(OperatorConstants.kRightXAxisPort),.08)), 
+                true), //turn to false to get rid of slew rate limiter
             m_robotDrive));
 
     
