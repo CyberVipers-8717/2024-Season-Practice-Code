@@ -27,6 +27,7 @@ import com.pathplanner.lib.auto.NamedCommands;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -76,7 +77,7 @@ public class RobotContainer {
 
   public RobotContainer() {
 
-    NamedCommands.registerCommand("intake", new AutoIntake(m_intake, .50)); 
+    NamedCommands.registerCommand("intake", new AutoIntake(m_intake, .65)); 
     NamedCommands.registerCommand("uptake", new AutoUptake(m_uptake, .25));
     NamedCommands.registerCommand("shooter", new AutoShooter(m_shooter, .65));
     //binds controller buttons to commands
@@ -95,7 +96,7 @@ public class RobotContainer {
                 squared(-MathUtil.applyDeadband(m_driverController.getRawAxis(OperatorConstants.kLeftYAxisPort), .08)), 
                 squared(-MathUtil.applyDeadband(m_driverController.getRawAxis(OperatorConstants.kLeftXAxisPort), .08)),
                 squared(-MathUtil.applyDeadband(m_driverController.getRawAxis(OperatorConstants.kRightXAxisPort),.08)), 
-                true, true), //turn to false to get rid of slew rate limiter
+                false, true), //turn to false to get rid of slew rate limiter
             m_robotDrive));
 
     
@@ -106,6 +107,7 @@ public class RobotContainer {
     //puts data on SmartDashboard
     SmartDashboard.putData("Auto Chooser", autoChooser);
     SmartDashboard.putData(m_robotDrive.m_gyro);
+    SmartDashboard.putData("Field", m_robotDrive.m_field); 
   }
 
   //simple square function to allow for smoother and more precise driving

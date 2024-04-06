@@ -26,6 +26,7 @@ import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructArrayPublisher;
 import edu.wpi.first.util.WPIUtilJNI;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
@@ -39,7 +40,7 @@ public class DriveSubsystem extends SubsystemBase {
   public DriveSubsystem() {
     AutoBuilder.configureHolonomic(
             this::getPose, 
-            this::resetPose, 
+            (pose) -> {resetPose(pose); m_poseEstimator.resetPosition(m_gyro.getRotation2d(), getPositions(), pose);}, 
             this::getCurrentSpeeds, 
             this::autoDrive,
             new HolonomicPathFollowerConfig( 
@@ -78,15 +79,16 @@ public class DriveSubsystem extends SubsystemBase {
   //odometry object to track the robots pose on the field
   private final SwerveDriveOdometry m_driveOdometry = new SwerveDriveOdometry(DriveConstants.kDriveKinematics, m_gyro.getRotation2d(), m_swervePositions); 
 
-   private final SwerveDrivePoseEstimator m_poseEstimator =
-      new SwerveDrivePoseEstimator(
-          DriveConstants.kDriveKinematics,
-          m_gyro.getRotation2d(),
-          getPositions(),
-          new Pose2d(), //below - 1x3 matrix of the form (x,y,theta) in meters and radians
-          VecBuilder.fill(0.05, 0.05, Units.degreesToRadians(5)), //stddev of state-space control pose estimate (wpilib) //increase values if you want to trust this estimate less
-          VecBuilder.fill(0.5, 0.5, Units.degreesToRadians(30))); //stddev of vision pose estimate (limelight) //increase values if you want to trust this estimate less
+  private final SwerveDrivePoseEstimator m_poseEstimator =
+    new SwerveDrivePoseEstimator(
+        DriveConstants.kDriveKinematics,
+        m_gyro.getRotation2d(),
+        getPositions(),
+        new Pose2d(), //below - 1x3 matrix of the form (x,y,theta) in meters and radians
+        VecBuilder.fill(0.05, 0.05, Units.degreesToRadians(5)), //stddev of state-space control pose estimate (wpilib) //increase values if you want to trust this estimate less
+        VecBuilder.fill(0.5, 0.5, Units.degreesToRadians(30))); //stddev of vision pose estimate (limelight) //increase values if you want to trust this estimate less
 
+  public final Field2d m_field = new Field2d();
   //serializes and publishes data for visualization using advantagescope 
   private final StructArrayPublisher<SwerveModuleState> publisher = NetworkTableInstance.getDefault().getStructArrayTopic("MyStates", SwerveModuleState.struct).publish();
   
@@ -289,6 +291,7 @@ public class DriveSubsystem extends SubsystemBase {
     publisher.set(getStates()); 
     //updates the swerve odometry every clock cycle
     updateOdometryPose();
+    m_field.setRobotPose(m_poseEstimator.getEstimatedPosition());
   }
 
   @Override
