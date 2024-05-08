@@ -9,6 +9,7 @@ public class AutoShooter extends Command {
     private final double speed;
     private final Timer waitTimer = new Timer(); 
 
+    //allows variable speeds 
     public AutoShooter(ShooterSubsystem shooterSubsystem, double speed){
         m_shooter = shooterSubsystem;
         this.speed = speed;
@@ -16,6 +17,7 @@ public class AutoShooter extends Command {
     }
 
     @Override 
+    //must reset and restart timer to work as expected 
     public void initialize() {
         waitTimer.reset();
         waitTimer.start(); 
@@ -28,12 +30,14 @@ public class AutoShooter extends Command {
     }
 
     @Override 
+    //Turns off motors and stops timer when command ends
     public void end(boolean interrupted) {
         m_shooter.setMotors(0);
         waitTimer.stop(); 
     }
 
     @Override 
+    //finishes command after a certain amount of time
     public boolean isFinished() { 
         if (waitTimer.get() < 2) {
             return false; 

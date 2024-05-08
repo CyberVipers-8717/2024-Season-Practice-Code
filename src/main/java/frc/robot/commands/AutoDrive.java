@@ -5,9 +5,10 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.DriveSubsystem;
 
+// (DEPRECATED)
 // Robot Relative Drive Command
 // will drive the robot a certain speed for a certain amount of time
-// forward is neg / left is neg/ ccw is neg
+// Used before we switched to path planner
 public class AutoDrive extends Command {
     private final double xSpeed; 
     private final double ySpeed; 
@@ -43,7 +44,8 @@ public class AutoDrive extends Command {
     }
 
     @Override 
-    public boolean isFinished() { //false: runs continuously, true: runs once and stops
+    //finishes command after a certain amount of time
+    public boolean isFinished() { 
         if (waitTimer.get() >= duration) {
             return true; 
         } else {

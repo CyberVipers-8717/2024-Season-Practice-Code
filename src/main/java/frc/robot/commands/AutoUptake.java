@@ -9,13 +9,15 @@ public class AutoUptake extends Command {
     private final double speed; 
     private final Timer waitTimer = new Timer(); 
 
-    public AutoUptake(UptakeSubsystem uptakeSubsystem, double speed) { //allows variable speeds 
+    //allows variable speeds 
+    public AutoUptake(UptakeSubsystem uptakeSubsystem, double speed) {
         m_uptake = uptakeSubsystem; 
         this.speed = speed; 
         addRequirements(m_uptake);
     }
 
     @Override 
+    //must reset and restart timer to work as expected 
     public void initialize() {
         waitTimer.reset();
         waitTimer.start();
@@ -28,6 +30,7 @@ public class AutoUptake extends Command {
     }
 
     @Override 
+    //Turns off motor and stops timer when command ends
     public void end(boolean interrupted) {
         m_uptake.setMotor(0);
         waitTimer.stop(); 
@@ -35,8 +38,9 @@ public class AutoUptake extends Command {
     }
 
     @Override 
+    //finishes command after a certain amount of time
     public boolean isFinished() {
-        if(waitTimer.get() < .5) {
+        if(waitTimer.get() < .6) {
             return false; 
         } else {
             return true;

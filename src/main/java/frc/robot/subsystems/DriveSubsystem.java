@@ -6,7 +6,6 @@ package frc.robot.subsystems;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
-import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.DriveConstants;
 import frc.robot.utils.LimelightHelpers;
@@ -35,12 +34,13 @@ import com.pathplanner.lib.util.ReplanningConfig;
 
 public class DriveSubsystem extends SubsystemBase {
 
-  
-  /** Creates a new ExampleSubsystem. */
+  //default constructor for drive subsystem
   public DriveSubsystem() {
+
+    //configures path planner to work with our drivetrain
     AutoBuilder.configureHolonomic(
             this::getPose, 
-            (pose) -> {resetPose(pose); m_poseEstimator.resetPosition(m_gyro.getRotation2d(), getPositions(), pose);}, 
+            (pose) -> {resetPose(pose); m_poseEstimator.resetPosition(m_gyro.getRotation2d(), getPositions(), pose);}, //resets pose and then updates the field 2d with the starting pose
             this::getCurrentSpeeds, 
             this::autoDrive,
             new HolonomicPathFollowerConfig( 
@@ -54,8 +54,8 @@ public class DriveSubsystem extends SubsystemBase {
               // Boolean supplier that controls when the path will be mirrored for the red alliance
               // This will flip the path being followed to the red side of the field.
               // THE ORIGIN WILL REMAIN ON THE BLUE SIDE
-
-              var alliance = DriverStation.getAlliance();
+              
+              var alliance = DriverStation.getAlliance(); //if not connected to FMS will default to whatever alliance is selected on the drive station
               if (alliance.isPresent()) {
                 return alliance.get() == DriverStation.Alliance.Red;
               }
@@ -66,10 +66,11 @@ public class DriveSubsystem extends SubsystemBase {
     
   }
 
-  private final SwerveModule m_frontLeft = new SwerveModule(DriveConstants.kFrontLeftDriveMotorPort, DriveConstants.kFrontLeftTurnMotorPort, -Math.PI/2); //change back to private  //Math.PI/2
-  private final SwerveModule m_frontRight = new SwerveModule(DriveConstants.kFrontRightDriveMotorPort, DriveConstants.kFrontRightTurnMotorPort, 0); //Math.PI
-  private final SwerveModule m_rearLeft = new SwerveModule(DriveConstants.kRearLeftDriveMotorPort, DriveConstants.kRearLeftTurnMotorPort, Math.PI); //0
-  private final SwerveModule m_rearRight = new SwerveModule(DriveConstants.kRearRightDriveMotorPort, DriveConstants.kRearRightTurnMotorPort, Math.PI/2); //-Math.PI/2 
+  //configuring the swerve modules
+  private final SwerveModule m_frontLeft = new SwerveModule(DriveConstants.kFrontLeftDriveMotorPort, DriveConstants.kFrontLeftTurnMotorPort, -Math.PI/2); 
+  private final SwerveModule m_frontRight = new SwerveModule(DriveConstants.kFrontRightDriveMotorPort, DriveConstants.kFrontRightTurnMotorPort, 0); 
+  private final SwerveModule m_rearLeft = new SwerveModule(DriveConstants.kRearLeftDriveMotorPort, DriveConstants.kRearLeftTurnMotorPort, Math.PI); 
+  private final SwerveModule m_rearRight = new SwerveModule(DriveConstants.kRearRightDriveMotorPort, DriveConstants.kRearRightTurnMotorPort, Math.PI/2); 
 
   private final SwerveModulePosition[] m_swervePositions = getPositions();
   
@@ -79,6 +80,7 @@ public class DriveSubsystem extends SubsystemBase {
   //odometry object to track the robots pose on the field
   private final SwerveDriveOdometry m_driveOdometry = new SwerveDriveOdometry(DriveConstants.kDriveKinematics, m_gyro.getRotation2d(), m_swervePositions); 
 
+  //poseEstimator object which tracks the robots pose on the field (similar to odometry object but can use vision data for more accurate tracking)
   private final SwerveDrivePoseEstimator m_poseEstimator =
     new SwerveDrivePoseEstimator(
         DriveConstants.kDriveKinematics,
@@ -88,10 +90,13 @@ public class DriveSubsystem extends SubsystemBase {
         VecBuilder.fill(0.05, 0.05, Units.degreesToRadians(5)), //stddev of state-space control pose estimate (wpilib) //increase values if you want to trust this estimate less
         VecBuilder.fill(0.5, 0.5, Units.degreesToRadians(30))); //stddev of vision pose estimate (limelight) //increase values if you want to trust this estimate less
 
+  //Field widgit for Shuffleboard
   public final Field2d m_field = new Field2d();
-  //serializes and publishes data for visualization using advantagescope 
+
+  //publishes data for visualization using advantagescope 
   private final StructArrayPublisher<SwerveModuleState> publisher = NetworkTableInstance.getDefault().getStructArrayTopic("MyStates", SwerveModuleState.struct).publish();
   
+  //SlewRate variables
   private double m_currentRotation = 0.0;
   private double m_currentTranslationDir = 0.0;
   private double m_currentTranslationMag = 0.0;
@@ -100,7 +105,7 @@ public class DriveSubsystem extends SubsystemBase {
   private SlewRateLimiter m_rotLimiter = new SlewRateLimiter(DriveConstants.kRotationalSlewRate);
   private double m_prevTime = WPIUtilJNI.now() * 1e-6;
   
-  //default drive method that converts controller input into field centric robot movement
+  //default drive method that converts controller input into field Relative robot movement (can toggle fieldRelative and rateLimiter)
   public void drive(double xSpeed, double ySpeed, double arr, boolean rateLimit, boolean fieldRelative){
     double xSpeedCommanded;
     double ySpeedCommanded;
@@ -160,7 +165,7 @@ public class DriveSubsystem extends SubsystemBase {
 
     //generates array of swerve module states from controller input
     var swerveModuleStates = DriveConstants.kDriveKinematics.toSwerveModuleStates(ChassisSpeeds.discretize(fieldRelative ? 
-      ChassisSpeeds.fromFieldRelativeSpeeds(xSpeedDelivered, ySpeedDelivered, rotDelivered, m_poseEstimator.getEstimatedPosition().getRotation()): new ChassisSpeeds(xSpeedDelivered, ySpeedCommanded, rotDelivered), DriveConstants.kDriverPeriod));
+      ChassisSpeeds.fromFieldRelativeSpeeds(xSpeedDelivered, ySpeedDelivered, rotDelivered, m_gyro.getRotation2d()): new ChassisSpeeds(xSpeedDelivered, ySpeedCommanded, rotDelivered), DriveConstants.kDriverPeriod));
 
     //caps wheel speeds to ensure they don't go faster than they're allowed to 
     SwerveDriveKinematics.desaturateWheelSpeeds(swerveModuleStates, DriveConstants.kMaxSpeedMetersPerSecond);
@@ -172,7 +177,7 @@ public class DriveSubsystem extends SubsystemBase {
     m_rearRight.setDesiredState(swerveModuleStates[3]);
   }
 
-  //simple auto drive method for path following 
+  //simple auto drive method for path following (path planner requires a driv emethod that takes ChassisSpeeds)
   public void autoDrive(ChassisSpeeds speeds) {
     var swerveModuleStates = DriveConstants.kDriveKinematics.toSwerveModuleStates(ChassisSpeeds.discretize(
     speeds, DriveConstants.kDriverPeriod
@@ -184,75 +189,9 @@ public class DriveSubsystem extends SubsystemBase {
     m_frontRight.setDesiredState(swerveModuleStates[1]);
     m_rearLeft.setDesiredState(swerveModuleStates[2]);
     m_rearRight.setDesiredState(swerveModuleStates[3]);
-
-  }
-  
-  //Generates field-centric chassis speeds
-  public ChassisSpeeds tofieldRelative(double xSpeed, double ySpeed, double angVel) {
-    double hypot = Math.hypot(xSpeed, ySpeed);
-    double angle = findControllerAngle(-xSpeed, ySpeed); //radians
-    double robotAngle = -m_gyro.getAngle();
-    while(Math.abs(robotAngle) > 0) { //finds positive relative angle 
-      if(robotAngle<=360 && robotAngle > 0) {
-        break; 
-      } 
-      if(robotAngle<0) {
-        robotAngle+=360; 
-      } else {
-        robotAngle-=360; 
-      }
-    }
-    robotAngle = Math.toRadians(robotAngle); 
-    double realAngle = findRelativeAngle(angle,robotAngle);
-    double vxMagnitude = (Math.hypot(-hypot*Math.cos(robotAngle-angle)*Math.sin(robotAngle),hypot*Math.cos(robotAngle-angle)*Math.cos(robotAngle)));
-    double vyMagnitude = (Math.hypot(hypot*Math.cos(robotAngle)*Math.sin(robotAngle-angle),hypot*Math.sin(robotAngle)*Math.sin(robotAngle-angle)));
-    double[] realMagnitudes = findFieldRelativeMagnitudes(vxMagnitude,vyMagnitude, realAngle);
-    return new ChassisSpeeds(realMagnitudes[0],realMagnitudes[1], angVel);
   }
 
-  //finds the angle of the left joystick in radians
-  //the offsets are a work around to deal with any negative angles fom atan2
-  public double findControllerAngle(double y, double x) { 
-    if(y == 0 && x == 0) {
-      return 0; 
-    }
-    if(y<0||(y>0&&x>0)||(y==0&&x>0)) {
-      return Math.atan2(y,x)+(3*Math.PI/2); 
-    }
-    return Math.atan2(y,x)-Math.PI/2; 
-  }
-
-  //simple function to find the positive relative angle in radians
-  public double findRelativeAngle(double angRad, double gyro) {
-    double adjustedAngle = Math.toDegrees(angRad - gyro); 
-    while(Math.abs(adjustedAngle) > 0) { //finds positive relative angle 
-      if(adjustedAngle<=360 && adjustedAngle > 0) {
-        break; 
-      } 
-      if(adjustedAngle<0) {
-        adjustedAngle+=360; 
-      } else {
-        adjustedAngle-=360; 
-      }
-    }
-    return Math.toRadians(adjustedAngle); 
-  }
-
-  //calculates the signs of the magnitudes depending on the current angle 
-  public double[] findFieldRelativeMagnitudes(double vxMag, double vyMag, double angRad) {
-    double angDeg = Math.toDegrees(angRad);
-    if((angDeg>=0||angDeg==360)&&angDeg<90) {
-      return new double[] {vxMag, vyMag};
-    } else if (angDeg>=90&&angDeg<180) {
-      return new double[] {-vxMag, vyMag};
-    } else if (angDeg>=180&&angDeg<270) {
-      return new double[] {-vxMag, -vyMag};
-    } else if (angDeg>=270&&angDeg<360) {
-      return new double[] {vxMag, -vyMag};
-    } 
-    return new double[] {0,0};
-  }
-
+  //gets the estimated robot pose from the odometry object (prone to drift)
   public Pose2d getPose(){
     return m_driveOdometry.getPoseMeters();
   }
@@ -268,11 +207,6 @@ public class DriveSubsystem extends SubsystemBase {
     return new SwerveModulePosition[] {m_frontLeft.getPosition(), m_frontRight.getPosition(), m_rearLeft.getPosition(), m_rearRight.getPosition()};
   }
 
-  public SwerveModulePosition[] getRealPositions() {
-    return new SwerveModulePosition[] {m_frontLeft.getRealPosition(), m_frontRight.getRealPosition(), m_rearLeft.getRealPosition(), m_rearRight.getRealPosition()};
-  }
-
-  
   //gets the current state of the swerve modules
   //at the start this should be 0 m/s and the Rotation2d representing the current angle of the wheels 
   public SwerveModuleState[] getStates() {
@@ -289,8 +223,9 @@ public class DriveSubsystem extends SubsystemBase {
   public void periodic() {
     //updates data on advantagescope
     publisher.set(getStates()); 
-    //updates the swerve odometry every clock cycle
+    //updates the swerve odometry and pose Estimator every clock cycle
     updateOdometryPose();
+    //publishes the estimated robot position to the Field widgit for visualization
     m_field.setRobotPose(m_poseEstimator.getEstimatedPosition());
   }
 
@@ -304,6 +239,8 @@ public class DriveSubsystem extends SubsystemBase {
     return new InstantCommand(() -> {m_gyro.reset();}, this);
   }
 
+  //Updates the odometry and poseEstimator  
+  //Can use the Limelight to more accurately Estimate the Pose
   public void updateOdometryPose() {
     m_driveOdometry.update(m_gyro.getRotation2d(), getPositions());
     m_poseEstimator.update(m_gyro.getRotation2d(), getPositions()); 

@@ -21,15 +21,19 @@ public class ClimbSubsystem extends SubsystemBase{
 
         m_climb.setSmartCurrentLimit(ClimbConstants.kClimbMotorCurrentLimit); 
         m_climb.setIdleMode(IdleMode.kBrake); 
+
+        m_climb.setInverted(false);
     
         m_climb.burnFlash();
         zeroEncoder();
     }
 
+    //Reset Encoders
     public void zeroEncoder() {
         m_climbEncoder.setPosition(0);
     }
 
+    //moves th eclimb motor
     public void setMotor(double speed){
         m_climb.set(speed);
     }

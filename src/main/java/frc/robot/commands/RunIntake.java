@@ -7,13 +7,15 @@ public class RunIntake extends Command {
     private final IntakeSubsystem m_intake; 
     private final double speed; 
 
-    public RunIntake(IntakeSubsystem intakeSubsystem) { //defaults to full speed
+    //defaults to full speed
+    public RunIntake(IntakeSubsystem intakeSubsystem) { 
         m_intake = intakeSubsystem; 
         speed = 1; 
         addRequirements(m_intake);
     }
 
-    public RunIntake(IntakeSubsystem intakeSubsystem, double speed) { //allows variable speeds 
+    //allows variable speeds 
+    public RunIntake(IntakeSubsystem intakeSubsystem, double speed) { 
         m_intake = intakeSubsystem; 
         this.speed = speed; 
         addRequirements(m_intake);
@@ -35,7 +37,8 @@ public class RunIntake extends Command {
     }
 
     @Override 
-    public boolean isFinished() { //false: runs continuously, true: runs once and stops
+    //false: runs continuously, true: runs once and stops
+    public boolean isFinished() { 
         return false;
     }
     

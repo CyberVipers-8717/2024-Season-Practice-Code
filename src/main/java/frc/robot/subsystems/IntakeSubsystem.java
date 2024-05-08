@@ -37,11 +37,13 @@ public class IntakeSubsystem extends SubsystemBase {
         zeroEncoders();
     }
 
+    //resets Encoders
     public void zeroEncoders() {
         m_lowEncoder.setPosition(0);
         m_highEncoder.setPosition(0);
     }
 
+    //Moves the Intake Motors
     public void setMotors(double speed) {
         m_lowIntake.set(speed);
         m_highIntake.set(speed);

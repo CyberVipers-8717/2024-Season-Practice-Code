@@ -5,9 +5,7 @@ import frc.robot.subsystems.UptakeSubsystem;
 
 public class RunUptake extends Command {
     private final UptakeSubsystem m_uptake; 
-    private final double speed; 
-    //private final Timer waitTimer = new Timer(); 
-    //private final Timer uptakeTimer = new Timer(); 
+    private final double speed;
 
     //defaults to full speed
     public RunUptake(UptakeSubsystem uptakeSubsystem) {
@@ -25,7 +23,6 @@ public class RunUptake extends Command {
 
     @Override 
     public void initialize() {
-        //waitTimer.start();
         m_uptake.zeroEncoder();
     }
 
@@ -35,25 +32,15 @@ public class RunUptake extends Command {
     }
 
     @Override 
+    //Turns the motor off when command ends
     public void end(boolean interrupted) {
-        //uptakeTimer.reset();  
-        //waitTimer.reset();
         m_uptake.setMotor(0);
 
     }
 
     @Override 
-    public boolean isFinished() { //checks if current spikes and ends command only after a couple second delay
-    //     if(speed < 0 || speed == .26) { //rough work around to differentiate between flush mode and popping   
-    //         return false; 
-    //     } else if (waitTimer.get() >= .5) { //waits half a second after initializing to ignore current spikes on start up (needs tuning)
-    //         if (m_uptake.getAmps() > 5 && uptakeTimer.get() == 0) { //current threshold might cahnge
-    //             uptakeTimer.start();
-    //             return false;
-    //         } else if (m_uptake.getAmps() > 5 && uptakeTimer.get() >= .1) {
-    //             return true;
-    //         }
-    //    }
+    //false: runs continuously, true: runs once and stops
+    public boolean isFinished() { 
        return false; 
     }
     

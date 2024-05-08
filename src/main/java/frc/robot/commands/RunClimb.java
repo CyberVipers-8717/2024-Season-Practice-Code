@@ -7,7 +7,7 @@ public class RunClimb extends Command {
     private final ClimbSubsystem m_climb;  
     private double speed;  
     
-    //constructor to use for direct control of climb (might remove)
+    //variable speed
     public RunClimb(ClimbSubsystem climbSubsystem, double speed) {
         m_climb = climbSubsystem;
         this.speed = speed;
@@ -15,6 +15,7 @@ public class RunClimb extends Command {
     }
 
     @Override 
+    //shouldn't zero encoders because we use them to know when to stop 
     public void initialize() {
     }
 
@@ -24,11 +25,13 @@ public class RunClimb extends Command {
     }
 
     @Override 
+    //turns off motor when command ends
     public void end(boolean interrupted) {
         m_climb.setMotor(0);
     }
 
     @Override 
+    //false: runs continuously, true: runs once and stops
     public boolean isFinished() { 
         if (speed < 0 && m_climb.getPosition() <= 0 ) { //going down and hit bottom
             return true;     

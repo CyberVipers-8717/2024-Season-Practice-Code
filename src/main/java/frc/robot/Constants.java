@@ -19,11 +19,12 @@ import edu.wpi.first.wpilibj.TimedRobot;
  */
 public final class Constants {
   public static class DriveConstants { 
-    public static final double kMaxSpeedMetersPerSecond = 4.3;
+    public static final double kMaxSpeedMetersPerSecond = 1.8; //4.3 
     public static final double kMaxAccelerationMetersPerSecond = 4.3; //theoretical max
     public static final double kMaxAngularSpeed = 2 * Math.PI; //radians per sec 
     public static final double kMaxAngularAcceleration = 2 * Math.PI; // radians per second per second
 
+    //Slew Rate helps Stop Wheel Failure 
     public static final double kDirectionSlewRate = 1.2; // radians per second
     public static final double kMagnitudeSlewRate = 1.8; // percent per second (1 = 100%)
     public static final double kRotationalSlewRate = 2.0; // percent per second (1 = 100%)
@@ -104,23 +105,22 @@ public final class Constants {
     public static final double kTurnEncoderPositionFactor = 2 * Math.PI; //radians 
     public static final double kTurnEncoderVelocityFactor = (2 * Math.PI) / 60.0; // radians per second
 
-
     public static final boolean kTurnEncoderInverted = true;
     public static final boolean kTurnEncoderWrapping = true;
 
     public static final double kTurnEncoderPositionPIDMinInput = 0; 
     public static final double kTurnEncoderPositionPIDMaxInput = 2 * Math.PI; 
 
-    //gains for drive motor PID (test and change)
-    public static final double kDriveP = .04; //0.04 (value for rev pid)
+    //gains for drive motor PID (defaults)
+    public static final double kDriveP = .04; 
     public static final double kDriveI = 0; 
     public static final double kDriveD = 0; 
     public static final double kDriveFF = 1 / kDriveWheelFreeSpeedRps; 
     public static final double kDriveMinOutput = -1; 
     public static final double kDriveMaxOutout = 1; 
 
-    //gains for turn motor PID (test and change)
-    public static final double kTurnP = 1; //same value for rev pid
+    //gains for turn motor PID (defaults)
+    public static final double kTurnP = 1; 
     public static final double kTurnI = 0;
     public static final double kTurnD = 0;
     public static final double kTurnFF = 0;

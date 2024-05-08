@@ -9,13 +9,15 @@ public class AutoIntake extends Command {
     private final double speed; 
     private final Timer waitTimer = new Timer(); 
 
-    public AutoIntake(IntakeSubsystem intakeSubsystem, double speed) { //allows variable speeds 
+    //allows variable speeds 
+    public AutoIntake(IntakeSubsystem intakeSubsystem, double speed) { 
         m_intake = intakeSubsystem; 
         this.speed = speed; 
         addRequirements(m_intake);
     }
 
     @Override 
+    //must reset and restart timer to work as expected 
     public void initialize() {
         waitTimer.restart();
         waitTimer.start(); 
@@ -27,15 +29,17 @@ public class AutoIntake extends Command {
         m_intake.setMotors(speed);
     }
 
-    @Override 
+    @Override
+    //Turns off motors and stops timer when command ends 
     public void end(boolean interrupted) {
         m_intake.setMotors(0);
         waitTimer.stop();  
     }
 
     @Override 
-    public boolean isFinished() { //false: runs continuously, true: runs once and stops
-        if (waitTimer.get() < 1) { //change time limit 
+    //finishes command after a certain amount of time
+    public boolean isFinished() {
+        if (waitTimer.get() < 1) { 
             return false; 
         } else {
             return true; 

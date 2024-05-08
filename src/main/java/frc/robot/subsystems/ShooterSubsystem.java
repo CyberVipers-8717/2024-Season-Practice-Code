@@ -37,11 +37,13 @@ public class ShooterSubsystem extends SubsystemBase {
         zeroEncoders();
     }
 
+    //resets the Encoders
     public void zeroEncoders() {
         m_lowEncoder.setPosition(0);
         m_highEncoder.setPosition(0);
     }
 
+    //moves the shooter motors
     public void setMotors(double speed) {
         m_lowShooter.set(speed);
         m_highShooter.set(speed);

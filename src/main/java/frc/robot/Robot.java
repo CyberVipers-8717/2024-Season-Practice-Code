@@ -25,9 +25,9 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void robotInit() {
-    // Instantiate our RobotContainer.  This will perform all our button bindings, and put our
-    // autonomous chooser on the dashboard.
+    //This is Required to use Live Window on Shuffleboard in Test Mode
     enableLiveWindowInTest(true);
+    //Instantiate our RobotContainer
     m_robotContainer = new RobotContainer();
   }
 
